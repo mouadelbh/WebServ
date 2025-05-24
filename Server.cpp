@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 13:50:04 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/24 14:17:56 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/24 14:41:36 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,21 +73,17 @@ void	Server::runServer(std::unordered_map<int, Client> &clients) {
 					run = false;
 					break;
 				}
-				else {
-					close(current_fd);
-					clients.erase(current_fd); // Only erase if it's a client
-					fds.erase(fds.begin() + i);
-					i--;
-				}
+				else
+					kickClient(clients, fds, &i);
 				continue;
 			}
 
 			if (fds[i].revents & POLLIN && current_fd == socket_fd)
 				this->AcceptConnection(clients);
 			else if (fds[i].revents & POLLIN && clients[current_fd].state != WRITING)
-				getRequest(clients, fds, &i) ? (void)0 : kickClient(clients, fds, &i);
+				clients[current_fd].getRequest(fds, &i) ? (void)0 : kickClient(clients, fds, &i);
 			else if (fds[i].revents & POLLOUT && clients[current_fd].state == WRITING)
-				sendResponse(clients, fds, &i) ? (void)0 : kickClient(clients, fds, &i);
+				clients[current_fd].sendResponse(fds, &i) ? (void)0 : kickClient(clients, fds, &i);
 		}
 	}
 	close(socket_fd);

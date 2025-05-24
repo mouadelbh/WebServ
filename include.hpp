@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/19 16:18:09 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/24 14:18:16 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/24 14:46:50 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,8 +29,8 @@
 
 extern bool run;
 
-#define PORT 8082
+#define PORT 8080
 
-void kickClient(std::unordered_map<int, Client> &clients, std::vector<struct pollfd> &fds, size_t *index);
-bool	getRequest(std::unordered_map<int, Client> &clients, std::vector<struct pollfd> &fds, size_t *index);
-bool	sendResponse(std::unordered_map<int, Client> &clients, std::vector<struct pollfd> &fds, size_t *index);
+void	terminate_server(int sig);
+void	init(char **av);
+void	kickClient(std::unordered_map<int, Client> &clients, std::vector<struct pollfd> &fds, size_t *index);

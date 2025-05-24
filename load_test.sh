@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PORT=8082
+PORT=8080
 NUM_CLIENTS=10  # Number of concurrent clients
 TEST_URL="http://localhost:$PORT"
 
