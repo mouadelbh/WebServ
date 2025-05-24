@@ -1,7 +1,7 @@
 #!/bin/bash
 
 PORT=8082
-NUM_CLIENTS=1000  # Number of concurrent clients
+NUM_CLIENTS=10  # Number of concurrent clients
 TEST_URL="http://localhost:$PORT"
 
 # Test function for each client

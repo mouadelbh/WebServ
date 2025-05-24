@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 13:50:04 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/24 13:56:18 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/24 14:17:56 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,14 +20,14 @@ Server::~Server() {
 	}
 }
 
-void	Server::initServer(std::vector<struct pollfd> &fds, int &socket_fd) {
+void	Server::initServer() {
 	int opt = 1;
 
 	socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (socket_fd < 0)
 		std::cerr << "Error creating socket" << std::endl, exit(1);
 	sockaddr_in addr;
-	fds.push_back((struct pollfd){socket_fd, POLLIN, 0});
+	fds.push_back((struct pollfd){socket_fd, POLLIN | POLLERR | POLLHUP | POLLNVAL, 0});
 	memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(PORT);
@@ -40,7 +40,7 @@ void	Server::initServer(std::vector<struct pollfd> &fds, int &socket_fd) {
 	std::cout << "Server initialized on port " << PORT << std::endl;
 }
 
-void	Server::AcceptConnection(std::unordered_map<int, Client> &clients, std::vector<struct pollfd> &fds, int socket_fd) {
+void	Server::AcceptConnection(std::unordered_map<int, Client> &clients) {
 	int	client_fd;
 	sockaddr_in client_addr;
 	socklen_t client_len;
@@ -57,7 +57,7 @@ void	Server::AcceptConnection(std::unordered_map<int, Client> &clients, std::vec
 	fds.push_back((struct pollfd){client_fd, POLLIN | POLLHUP | POLLERR | POLLNVAL, 0});
 }
 
-void	Server::runServer(std::vector<struct pollfd> &fds, int socket_fd, std::unordered_map<int, Client> &clients) {
+void	Server::runServer(std::unordered_map<int, Client> &clients) {
 	while (run) {
 		int res = poll(fds.data(), fds.size(), -1);
 		if (res < 0) {
@@ -83,11 +83,11 @@ void	Server::runServer(std::vector<struct pollfd> &fds, int socket_fd, std::unor
 			}
 
 			if (fds[i].revents & POLLIN && current_fd == socket_fd)
-				this->AcceptConnection(clients, fds, socket_fd);
+				this->AcceptConnection(clients);
 			else if (fds[i].revents & POLLIN && clients[current_fd].state != WRITING)
-				getRequest(clients, fds, &i);
+				getRequest(clients, fds, &i) ? (void)0 : kickClient(clients, fds, &i);
 			else if (fds[i].revents & POLLOUT && clients[current_fd].state == WRITING)
-				sendResponse(clients, fds, &i);
+				sendResponse(clients, fds, &i) ? (void)0 : kickClient(clients, fds, &i);
 		}
 	}
 	close(socket_fd);
