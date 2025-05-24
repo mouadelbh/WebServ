@@ -6,11 +6,32 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 14:33:47 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/24 14:34:19 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/24 17:05:34 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "include.hpp"
+#include "includes/include.hpp"
+
+std::string &readFile(std::string const &path) {
+	static std::string body;
+	body.clear();
+	std::ifstream file(path);
+	if (!file.is_open()) {
+		std::cerr << "Error opening file: " << path << std::endl;
+		return body;
+	}
+	std::string line;
+	while (std::getline(file, line)) {
+		body += line + "\n";
+	}
+	file.close();
+	if (body.empty()) {
+		std::cerr << "File is empty: " << path << std::endl;
+		return body;
+	}
+	body.erase(body.find_last_not_of("\n") + 1); // Remove trailing newline
+	return body;
+}
 
 void	terminate_server(int sig) {
 	if (sig == SIGINT) {

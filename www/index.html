@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Success</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #4CAF50, #2E7D32);
+      height: 100vh;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 5rem;
+      margin-bottom: 0.5em;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    p {
+      font-size: 1.5rem;
+      max-width: 600px;
+      animation: fadeIn 1.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .button {
+      margin-top: 2em;
+      padding: 0.7em 1.5em;
+      background-color: white;
+      color: #2E7D32;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: 0.3s;
+    }
+
+    .button:hover {
+      background-color: #e0f2f1;
+    }
+  </style>
+</head>
+<body>
+  <h1>Niggas in Paris</h1>
+  <p>Everything is working perfectly. Your request has been handled successfully!</p>
+  <a href="/" class="button">Back to Home</a>
+</body>
+</html>

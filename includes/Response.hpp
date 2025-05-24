@@ -1,27 +1,32 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
+/*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/05/19 16:21:14 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/24 16:16:42 by mel-bouh         ###   ########.fr       */
+/*   Created: 2025/05/24 16:17:34 by mel-bouh          #+#    #+#             */
+/*   Updated: 2025/05/24 17:14:18 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "includes/include.hpp"
+#pragma once
 
-bool run = true;
+// #include "include.hpp"
+#include <string>
+#include <unordered_map>
+#include <sstream>
+#include <iostream>
 
-int main(int ac, char **av) {
-	if (ac != 1) {
-		std::cerr << "Usage: " << av[0] << std::endl;
-		return 1;
-	}
-	Server server;
-	std::unordered_map<int, Client> clients;
-	init(av);
-	server.initServer();
-	server.runServer(clients);
-}
+class Response {
+	public:
+		std::string version;
+		int status_code;
+		std::string status_message;
+		std::unordered_map<std::string, std::string> headers;
+		std::string body;
+
+		Response();
+		void setStatus(int code, const std::string &message);
+		std::string toString() const;
+};
