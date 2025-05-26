@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 16:06:02 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/24 17:14:03 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/26 15:45:33 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,6 @@ class Request {
 		std::string body;
 
 		Request();
-		void parse(const std::string &request_str);
-		std::string toString() const;
+		void	parse(const std::string &request_str);
+		void	clear();
 };

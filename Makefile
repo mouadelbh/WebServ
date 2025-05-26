@@ -6,7 +6,7 @@
 #    By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/24 10:08:38 by mel-bouh          #+#    #+#              #
-#    Updated: 2025/05/24 17:08:01 by mel-bouh         ###   ########.fr        #
+#    Updated: 2025/05/26 14:21:38 by mel-bouh         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,7 +18,8 @@ FLAGS = -Wall -Wextra -Werror #-std=c++98 # Added -std=c++98 as it's common for 
 NAME = webserv
 
 # Source files: Added Server.cpp
-SRCS = main.cpp Client.cpp Server.cpp Request.cpp Response.cpp utils.cpp
+SRCS = src/main.cpp src/Client.cpp src/Server.cpp src/Request.cpp \
+	src/Response.cpp src/utils.cpp
 
 # Object files (derived from SRCS)
 OBJS = $(SRCS:.cpp=.o)

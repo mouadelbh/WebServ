@@ -6,11 +6,11 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 14:33:47 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/24 17:05:34 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/26 14:18:12 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "includes/include.hpp"
+#include "../includes/include.hpp"
 
 std::string &readFile(std::string const &path) {
 	static std::string body;

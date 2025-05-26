@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 10:05:05 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/24 17:11:30 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/26 15:48:26 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,4 +44,5 @@ class Client {
 		void	buildBody();
 		bool	getRequest(std::vector<struct pollfd> &fds, size_t *index);
 		bool	sendResponse(std::vector<struct pollfd> &fds, size_t *index);
+		void	clear();
 };

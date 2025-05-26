@@ -6,11 +6,11 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 10:08:13 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/24 17:24:01 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/26 15:50:16 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "includes/Client.hpp"
+#include "../includes/Client.hpp"
 
 Client::Client() : fd(-1), addr(), addr_len(0), state(READING) {
 	response_raw = "HTTP/1.1 200 OK\r\n"
@@ -107,5 +107,13 @@ bool	Client::sendResponse(std::vector<struct pollfd> &fds, size_t *index) {
 	std::cout << response_raw << std::endl;
 	state = READING; // Change state back to READING
 	fds[*index].events = POLLIN | POLLHUP | POLLERR | POLLNVAL; // Change back to POLLIN for reading next request
+	this->clear();
 	return true;
+}
+
+void	Client::clear() {
+	response_raw.clear();
+	request_raw.clear();
+	request.clear();
+	response.clear();
 }

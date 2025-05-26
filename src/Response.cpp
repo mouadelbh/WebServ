@@ -6,11 +6,11 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 16:28:05 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/24 17:02:38 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/26 15:47:53 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "includes/Response.hpp"
+#include "../includes/Response.hpp"
 
 Response::Response() : status_code(200), version("HTTP/1.1") {}
 
@@ -27,4 +27,12 @@ std::string Response::toString() const {
 	}
 	oss << "\r\n" << body;
 	return oss.str();
+}
+
+void	Response::clear() {
+	version.clear();
+	status_code = 200;
+	status_message.clear();
+	headers.clear();
+	body.clear();
 }
