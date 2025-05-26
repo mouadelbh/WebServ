@@ -3,3 +3,4 @@ webserv
 *.o
 src/*.o
 .vscode
+file*

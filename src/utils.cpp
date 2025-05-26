@@ -6,24 +6,23 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 14:33:47 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/26 17:33:57 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/26 18:26:48 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/include.hpp"
 
-std::string &readFile(std::string const &path) {
-	static std::string body;
+std::string readFile(std::string const &path) {
+	std::ostringstream ss;
+	std::string body;
 	body.clear();
-	std::ifstream file(path);
+	std::ifstream file(path.c_str(), std::ios::in | std::ios::binary);
 	if (!file.is_open()) {
 		std::cerr << "Error opening file: " << path << std::endl;
 		return body;
 	}
-	std::string line;
-	while (std::getline(file, line)) {
-		body += line + "\n";
-	}
+	ss << file.rdbuf();
+	body = ss.str();
 	file.close();
 	if (body.empty()) {
 		std::cerr << "File is empty: " << path << std::endl;
