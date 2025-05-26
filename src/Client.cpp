@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 10:08:13 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/26 15:50:16 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/26 18:18:38 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,18 +36,20 @@ bool	Client::getRequest(std::vector<struct pollfd> &fds, size_t *index) {
 	char buffer[1024];
 	int bytes_received = 1;
 
-	memset(buffer, 0, sizeof(buffer));
-	while (bytes_received > 0) {
-		bytes_received = recv(fd, buffer, sizeof(buffer) - 1, 0);
-		if (bytes_received < 0) {
-			std::cerr << "Error receiving data" << std::endl;
-			return false;
-		}
+	// request_raw.clear();
+	// request.clear();
+	while ((bytes_received = recv(fd, buffer, sizeof(buffer), 0)) > 0) {
 		request_raw.append(buffer, bytes_received);
-		if (request_raw.find("\r\n\r\n") != std::string::npos) {
-			break; // End of HTTP request_raw
-		}
-		memset(buffer, 0, sizeof(buffer));
+		if (request_raw.find("\r\n\r\n") != std::string::npos)
+			break;
+	}
+	if (bytes_received == 0 && request_raw.empty()) {
+		// client closed the connection, nothing to parse
+		return false;   // signal to kickClient(...)
+	}
+	if (bytes_received < 0) {
+		std::cerr << "Error receiving data\n";
+		return false;
 	}
 	std::cout << "-------Getting Request from client " << fd << "------" << std::endl;
 	std::cout << request_raw << std::endl;
@@ -57,42 +59,8 @@ bool	Client::getRequest(std::vector<struct pollfd> &fds, size_t *index) {
 	return true;
 }
 
-void	Client::buildStatusLine() {
-	if (request.method != "GET") response.setStatus(405, "Method Not Allowed");
-	if (request.version != "HTTP/1.1" && request.version != "HTTP/1.0") response.setStatus(505, "HTTP Version Not Supported");
-	if (request.path != "/") response.setStatus(404, "Not Found");
-	response.version = "HTTP/1.1";
-	std::cout << "Path: " << request.path << " status: " << response.status_code << std::endl;
-}
-
-void	Client::buildBody() {
-	switch (response.status_code) {
-		case 200:
-			response.body = readFile("www/index.html");
-			break ;
-		case 404:
-			response.body = readFile("status_errors/404.html");
-			break ;
-		case 405:
-			response.body = readFile("status_errors/405.html");
-			break ;
-		case 505:
-			response.body = readFile("status_errors/505.html");
-	}
-}
-
-void	Client::buildHeaders() {
-	response.headers["Content-Length"] = std::to_string(response.body.size());
-	response.headers["Content-Type"] = "text/html";
-
-	response.headers["Connection"] = "keep-alive";
-	response.headers["Server"] = "Webserv/1.0";
-}
-
 void	Client::buildResponse() {
-	this->buildStatusLine();
-	this->buildBody();
-	this->buildHeaders();
+	response.build(request);
 	response_raw = response.toString();
 }
 

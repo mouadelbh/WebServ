@@ -6,7 +6,7 @@
 #    By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/24 10:08:38 by mel-bouh          #+#    #+#              #
-#    Updated: 2025/05/26 14:21:38 by mel-bouh         ###   ########.fr        #
+#    Updated: 2025/05/26 17:44:18 by mel-bouh         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,7 +28,7 @@ OBJS = $(SRCS:.cpp=.o)
 # Ensure all necessary headers are listed if they influence compilation of multiple .cpp files
 # For simplicity, we can make all .o files depend on all .hpp files,
 # or be more precise if needed.
-HEADER_FILES = Client.hpp Server.hpp include.hpp
+HEADER_FILES = includes/Client.hpp includes/Server.hpp includes/include.hpp
 
 # Default target
 all: $(NAME)

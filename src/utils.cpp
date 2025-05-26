@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 14:33:47 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/26 14:18:12 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/26 17:33:57 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,11 @@ std::string &readFile(std::string const &path) {
 	}
 	body.erase(body.find_last_not_of("\n") + 1); // Remove trailing newline
 	return body;
+}
+
+bool	endsWith(const std::string& str, const std::string& suffix) {
+	if (str.length() < suffix.length()) return false;
+	return str.compare(str.length() - suffix.length(), suffix.length(), suffix) == 0;
 }
 
 void	terminate_server(int sig) {

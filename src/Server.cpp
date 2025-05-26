@@ -6,13 +6,13 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 13:50:04 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/26 14:18:12 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/26 17:38:26 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Server.hpp"
 
-Server::Server() : socket_fd(-1) {}
+Server::Server() : socket_fd(-1), index(0) {}
 
 Server::~Server() {
 	for (struct pollfd fd : fds) {
