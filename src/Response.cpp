@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 16:28:05 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/28 10:29:07 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/28 13:35:07 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,10 +34,15 @@ std::string Response::toString() const {
 }
 
 void	Response::buildStatusLine(Request &request) {
-	if (request.method != "GET") setStatus(405, "Method Not Allowed");
-	if (request.version != "HTTP/1.1" && request.version != "HTTP/1.0") setStatus(505, "HTTP Version Not Supported");
-	if (!request.pathIsValid(0)) setStatus(404, "Not Found");
 	version = "HTTP/1.1";
+	if (request.status != 0)
+		setStatus(request.status, getStatusCodeMap(request.status));
+	if (status_code == 400 || status_code == 401 || status_code == 403 ||
+		status_code == 405 || status_code == 413 || status_code == 414 ||
+		status_code == 501 || status_code == 505) {
+		return;
+	}
+	if (!request.pathIsValid(0)) setStatus(404, "Not Found");
 	std::cout << "Path: " << request.path << " status: " << status_code << std::endl;
 }
 

@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 10:05:05 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/28 10:28:56 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/28 13:19:12 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,13 +51,19 @@ class Request {
 		std::string version;
 		std::unordered_map<std::string, std::string> headers;
 		std::string body;
+		int status;
 
 		Request();
 		~Request();
+
+		bool	parseHeaders(const std::string &request_str, size_t &curr);
+		bool	parseRequestLine(const std::string &request_str);
+		void	parseBody(const std::string &method);
 		void	parse(const std::string &request_str);
 		void	clear();
 		bool	pathIsValid(int indexing);
 		std::string	getType();
+		std::string toString() const;
 };
 
 class Client {

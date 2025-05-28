@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 13:50:04 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/28 10:20:49 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/28 10:31:29 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,6 @@ void	Server::runServer(std::unordered_map<int, Client> &clients) {
 			if (fds[i].revents & (POLLERR | POLLHUP | POLLNVAL)) {
 				if (current_fd == socket_fd) {
 					std::cerr << "SERVER SOCKET ERROR!" << std::endl;
-					run = false;
 					break;
 				}
 				else

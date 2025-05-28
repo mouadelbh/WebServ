@@ -6,13 +6,13 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/19 16:21:14 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/28 10:15:30 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/28 10:51:35 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/include.hpp"
 
-bool run = true;
+bool	run = true;
 
 int main(int ac, char **av) {
 	if (ac != 1) {
