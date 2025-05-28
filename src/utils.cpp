@@ -6,30 +6,22 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 14:33:47 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/26 18:26:48 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/28 09:39:32 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/include.hpp"
 
 std::string readFile(std::string const &path) {
-	std::ostringstream ss;
-	std::string body;
-	body.clear();
 	std::ifstream file(path.c_str(), std::ios::in | std::ios::binary);
-	if (!file.is_open()) {
-		std::cerr << "Error opening file: " << path << std::endl;
-		return body;
-	}
+	if (!file.is_open())
+		throw std::runtime_error("Failed to open file: " + path);
+
+	std::ostringstream ss;
 	ss << file.rdbuf();
-	body = ss.str();
 	file.close();
-	if (body.empty()) {
-		std::cerr << "File is empty: " << path << std::endl;
-		return body;
-	}
-	body.erase(body.find_last_not_of("\n") + 1); // Remove trailing newline
-	return body;
+
+	return ss.str();
 }
 
 bool	endsWith(const std::string& str, const std::string& suffix) {
