@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 16:28:05 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/28 13:35:07 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/28 16:34:51 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,32 +34,48 @@ std::string Response::toString() const {
 }
 
 void	Response::buildStatusLine(Request &request) {
+	int	status_map[] = {400, 401, 403, 405, 413, 414, 501, 505};
 	version = "HTTP/1.1";
 	if (request.status != 0)
 		setStatus(request.status, getStatusCodeMap(request.status));
-	if (status_code == 400 || status_code == 401 || status_code == 403 ||
-		status_code == 405 || status_code == 413 || status_code == 414 ||
-		status_code == 501 || status_code == 505) {
-		return;
+	for (int i : status_map) {
+		if (i == status_code)
+			return;
 	}
-	if (!request.pathIsValid(0)) setStatus(404, "Not Found");
+	// if (!request.pathIsValid(0)) setStatus(404, "Not Found");
 	std::cout << "Path: " << request.path << " status: " << status_code << std::endl;
 }
 
-void	Response::buildBody(Request &request) {
-	switch (status_code) {
-		case 200:
-			body = readFile(request.path);
-			break ;
-		case 404:
-			body = readFile("status_errors/404.html");
-			break ;
-		case 405:
-			body = readFile("status_errors/405.html");
-			break ;
-		case 505:
-			body = readFile("status_errors/505.html");
+void	Response::setPath(Request &request) {
+	std::string &path = request.path;
+
+	path = "www" + path;
+	if (isDirectory(request.path) && !endsWith(request.path, "/"))
+		path += "/";
+	if (isDirectory(request.path) && hasIndexHtml(request.path)) {
+		path += "index.html";
 	}
+	if (isDirectory(request.path) && !hasIndexHtml(request.path) && !autoIndex) {
+		request.status = 403;
+		setStatus(403, "Forbidden");
+		return;
+	}
+	if (!isDirectory(request.path) && !fileExists(request.path)) {
+		request.status = 404;
+		setStatus(404, "Not Found");
+		return;
+	}
+}
+
+void	Response::buildBody(Request &request) {
+	uri = request.path;
+	this->setPath(request);
+	if (autoIndex && isDirectory(request.path))
+		body = generateAutoindexPage(request.path, uri);
+	else if (status_code == 200)
+		body = readFile(request.path);
+	else
+		body = readFile("status_errors/" + std::to_string(status_code) + ".html");
 }
 
 void	Response::buildHeaders(Request &request) {
@@ -74,6 +90,7 @@ void	Response::buildHeaders(Request &request) {
 }
 
 void	Response::build(Request &request) {
+	clear();
 	this->buildStatusLine(request);
 	this->buildBody(request);
 	this->buildHeaders(request);

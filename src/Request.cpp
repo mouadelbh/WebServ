@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 16:07:51 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/28 13:15:09 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/28 16:06:36 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,13 +133,12 @@ void	Request::parse(const std::string &str) {
 	pos = end + 2;
 	if (!parseHeaders(str.substr(pos), pos))
 		return ;
+	std::unordered_map<std::string, std::string>::iterator it = headers.find("Host");
+	if (it == headers.end() || it->second.empty()) {
+		status = 400;
+		return;
+	}
 	parseBody(str.substr(pos));
-	if (path == "/")
-		path = "www/index.html";
-	else if (endsWith(path, "/"))
-		path = "www" + path + "index.html";
-	else
-		path = "www" + path;
 }
 
 std::string	Request::getType() {
@@ -149,6 +148,7 @@ std::string	Request::getType() {
 	if (endsWith(path, ".jpg") || endsWith(path, ".jpeg")) return "image/jpeg";
 	if (endsWith(path, ".gif")) return "image/gif";
 	if (endsWith(path, ".js")) return "application/javascript";
+	if (autoIndex && isDirectory(path)) return "text/html";
 	return "application/octet-stream";
 }
 
@@ -160,6 +160,7 @@ bool	Request::pathIsValid(int index) {
 }
 
 void	Request::clear() {
+	status = 0;
 	method.clear();
 	path.clear();
 	version.clear();

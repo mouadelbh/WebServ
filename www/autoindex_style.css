@@ -1,0 +1,92 @@
+/* autoindex_style.css */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #1e1e2f; /* Dark blue-ish background */
+    color: #e0e0e0; /* Light grey text */
+    margin: 0;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #2a2a3a; /* Slightly lighter dark shade for content area */
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+h1 {
+    color: #82aaff; /* Light blue for headings */
+    border-bottom: 2px solid #82aaff;
+    padding-bottom: 10px;
+    margin-top: 0;
+    font-size: 2em;
+    text-align: center;
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background-image: linear-gradient(to right, rgba(130, 170, 255, 0), rgba(130, 170, 255, 0.75), rgba(130, 170, 255, 0));
+    margin: 20px 0;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    padding: 10px 15px;
+    border-bottom: 1px solid #3a3a4a; /* Separator for list items */
+    display: flex;
+    align-items: center;
+    transition: background-color 0.2s ease-in-out;
+}
+
+li:last-child {
+    border-bottom: none;
+}
+
+li:hover {
+    background-color: #3a3a4a; /* Hover effect for list items */
+}
+
+li a {
+    text-decoration: none;
+    color: #c3e88d; /* Light green for links */
+    font-weight: 500;
+    display: block;
+    width: 100%;
+}
+
+li a:hover {
+    color: #ffffff; /* Brighter color on hover */
+    text-decoration: underline;
+}
+
+/* Basic icons using pseudo-elements */
+li a::before {
+    content: '📄 '; /* Default file icon */
+    margin-right: 10px;
+    font-family: monospace; /* Ensures icons render consistently */
+}
+
+/* Specific icon for parent directory */
+li a.parent-dir::before {
+    content: '↩️ '; /* Back arrow for parent directory */
+}
+
+/* Specific icon for directories */
+li a.directory::before {
+    content: '📁 '; /* Folder icon */
+}
+
+.footer {
+    text-align: center;
+    margin-top: 30px;
+    font-size: 0.9em;
+    color: #707080; /* Muted color for footer */
+}
