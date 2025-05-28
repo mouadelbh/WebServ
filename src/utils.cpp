@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 14:33:47 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/28 09:39:32 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/28 10:22:04 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 std::string readFile(std::string const &path) {
 	std::ifstream file(path.c_str(), std::ios::in | std::ios::binary);
 	if (!file.is_open())
-		throw std::runtime_error("Failed to open file: " + path);
+		throw std::runtime_error("Could not open file: " + path);
 
 	std::ostringstream ss;
 	ss << file.rdbuf();

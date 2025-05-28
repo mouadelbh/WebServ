@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 13:50:04 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/26 17:38:26 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/28 10:20:49 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,12 +59,11 @@ void	Server::AcceptConnection(std::unordered_map<int, Client> &clients) {
 
 void	Server::runServer(std::unordered_map<int, Client> &clients) {
 	while (run) {
-		int res = poll(fds.data(), fds.size(), -1);
-		if (res < 0) {
-			std::cerr << "Poll error" << std::endl;
-			break;
-		}
-		for (size_t i = 0; i < fds.size(); i++) {
+		try {
+			int res = poll(fds.data(), fds.size(), -1);
+			if (res < 0 || run == false)
+				break ;
+			for (size_t i = 0; i < fds.size(); i++) {
 			int current_fd = fds[i].fd;
 
 			if (fds[i].revents & (POLLERR | POLLHUP | POLLNVAL)) {
@@ -84,6 +83,16 @@ void	Server::runServer(std::unordered_map<int, Client> &clients) {
 				clients[current_fd].getRequest(fds, &i) ? (void)0 : kickClient(clients, fds, &i);
 			else if (fds[i].revents & POLLOUT && clients[current_fd].state == WRITING)
 				clients[current_fd].sendResponse(fds, &i) ? (void)0 : kickClient(clients, fds, &i);
+			}
+		}
+		catch (const std::bad_alloc &e) {
+			std::cerr << "Memory allocation failed: " << e.what() << std::endl;
+		}
+		catch (const std::exception &e) {
+			std::cerr << "An error occurred: " << e.what() << std::endl;
+		}
+		catch (...) {
+			std::cerr << "An unknown error occurred." << std::endl;
 		}
 	}
 	close(socket_fd);

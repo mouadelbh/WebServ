@@ -6,13 +6,17 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 16:28:05 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/26 18:10:58 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/28 10:29:07 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Client.hpp"
 
 Response::Response() : version("HTTP/1.1") ,status_code(200) {}
+
+Response::~Response() {
+	clear();
+}
 
 void Response::setStatus(int code, const std::string &message) {
 	status_code = code;

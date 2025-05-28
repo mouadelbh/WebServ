@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 10:05:05 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/26 17:53:40 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/28 10:28:56 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@ class Response {
 		std::string body;
 
 		Response();
+		~Response();
 		void	buildStatusLine(Request &request);
 		void	buildHeaders(Request &request);
 		void	buildBody(Request &request);
@@ -52,6 +53,7 @@ class Request {
 		std::string body;
 
 		Request();
+		~Request();
 		void	parse(const std::string &request_str);
 		void	clear();
 		bool	pathIsValid(int indexing);
