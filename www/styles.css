@@ -1,0 +1,90 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Orbitron:wght@400;500;700;900&display=swap');
+
+/* Apply base styles */
+body {
+    font-family: 'Inter', sans-serif;
+    /* Background color is set by Tailwind bg-gray-900 */
+}
+
+/* Custom font for specific headings or elements if needed beyond Tailwind utilities */
+.font-orbitron {
+    font-family: 'Orbitron', sans-serif;
+}
+
+/* Hero Section Background - A subtle pattern or gradient can be added here */
+.hero-section {
+    /* background: linear-gradient(rgba(17, 24, 39, 0.8), rgba(17, 24, 39, 0.95)), url('https://placehold.co/1920x1080/111827/34D399?text=Tech+Background'); */
+    /* Using a placeholder for background image, replace with a suitable tech-themed image if desired */
+    /* The matrix effect is now handled by JavaScript in index.html */
+    background-color: #111827; /* Fallback if JS for matrix is disabled or fails */
+    background-size: cover;
+    background-position: center;
+}
+
+/* Styling for the Matrix background canvas */
+#matrix-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1; /* Ensure it's behind hero content but above solid background */
+}
+
+#matrix-bg canvas {
+    display: block; /* Remove any default canvas spacing */
+    width: 100%;
+    height: 100%;
+}
+
+
+/* Navigation active link style */
+/* Tailwind is used directly in HTML for this: border-b-2 border-green-400 pb-1 */
+
+/* Card hover effect (example, can be expanded) */
+/* Tailwind is used directly for this: transform hover:scale-105 transition-transform duration-300 */
+
+/* Custom scrollbar (optional, for a more "hacker" feel) */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1f2937; /* gray-800 */
+}
+
+::-webkit-scrollbar-thumb {
+    background: #34d399; /* green-400 */
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #10b981; /* green-500 */
+}
+
+/* Ensure content in hero is above the pseudo-element if you use one for overlay */
+.hero-section > div {
+    position: relative;
+    z-index: 1;
+}
+
+/* Additional responsive considerations if needed beyond Tailwind */
+@media (max-width: 768px) {
+    .hero-section h1 {
+        font-size: 2.5rem; /* Adjust for smaller screens */
+    }
+    .hero-section p {
+        font-size: 1rem;
+    }
+    nav .space-x-4 a, nav .space-x-6 a { /* Target nav links for smaller screens */
+        font-size: 0.875rem; /* text-sm */
+        padding-left: 0.5rem; /* px-2 */
+        padding-right: 0.5rem; /* px-2 */
+    }
+    nav .space-x-4, nav .space-x-6 {
+        gap: 0.5rem; /* reduce gap between nav items */
+    }
+}
+
