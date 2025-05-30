@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 16:07:51 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/28 16:06:36 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/30 10:42:28 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ bool	Request::parseRequestLine(const std::string &line) {
 		status = 400;
 		return false;
 	}
-	if (method != "GET") {
+	if (method != "GET" && method != "POST" && method != "DELETE") {
 		status = 501;
 		return false;
 	}

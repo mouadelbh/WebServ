@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>400 - Bad Request | 1337 School</title>
+    <title>401 - Unauthorized | 1337 School</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css"> <link rel="icon" href="https://www.1337.ma/wp-content/uploads/2020/02/cropped-favicon-32x32.png" type="image/png">
@@ -78,19 +78,19 @@
 
     <main class="flex-grow flex flex-col items-center justify-center text-center px-4">
         <div class="relative">
-            <h1 class="text-8xl md:text-9xl font-orbitron font-black text-green-400 glitch-text" data-text="400">400</h1>
+            <h1 class="text-8xl md:text-9xl font-orbitron font-black text-green-400 glitch-text" data-text="401">401</h1>
         </div>
-        <h2 class="text-3xl md:text-4xl font-orbitron font-bold mt-4 mb-6">Bad Request</h2>
+        <h2 class="text-3xl md:text-4xl font-orbitron font-bold mt-4 mb-6">Unauthorized</h2>
         <p class="text-lg md:text-xl text-gray-300 mb-10 max-w-md">
-            It seems your browser sent a request that the server couldn't understand.
-            Please check the URL or try again later.
+            You do not have the necessary authentication credentials for this resource.
+            Please ensure you are logged in or have proper access rights.
         </p>
         <a href="index.html" class="bg-green-500 hover:bg-green-600 text-gray-900 font-bold py-3 px-8 rounded-lg text-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
             Return to Homepage
         </a>
         <div class="mt-12 text-gray-500">
-            <p class="text-sm">If you believe this is an error, please double-check your input or contact support.</p>
-            <p class="text-xs mt-1">Error Code: <span class="font-mono">ERR_BR_400_SYNTAX</span></p>
+            <p class="text-sm">If you believe this is an error, please ensure you have the correct permissions or contact support.</p>
+            <p class="text-xs mt-1">Error Code: <span class="font-mono">ERR_UNAUTH_401_ACCESS</span></p>
         </div>
     </main>
 

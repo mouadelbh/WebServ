@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 16:28:05 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/28 16:34:51 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/30 15:58:52 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,65 +34,107 @@ std::string Response::toString() const {
 }
 
 void	Response::buildStatusLine(Request &request) {
-	int	status_map[] = {400, 401, 403, 405, 413, 414, 501, 505};
 	version = "HTTP/1.1";
 	if (request.status != 0)
 		setStatus(request.status, getStatusCodeMap(request.status));
-	for (int i : status_map) {
-		if (i == status_code)
-			return;
-	}
-	// if (!request.pathIsValid(0)) setStatus(404, "Not Found");
 	std::cout << "Path: " << request.path << " status: " << status_code << std::endl;
 }
 
-void	Response::setPath(Request &request) {
+void	Response::setGetPath(Request &request) {
 	std::string &path = request.path;
 
-	path = "www" + path;
 	if (isDirectory(request.path) && !endsWith(request.path, "/"))
 		path += "/";
-	if (isDirectory(request.path) && hasIndexHtml(request.path)) {
+	if (isDirectory(request.path) && fileReadable(request.path + "index.html"))
 		path += "index.html";
-	}
-	if (isDirectory(request.path) && !hasIndexHtml(request.path) && !autoIndex) {
-		request.status = 403;
+	if (isDirectory(request.path) && !fileReadable(request.path + "index.html") && !autoIndex) {
 		setStatus(403, "Forbidden");
 		return;
 	}
 	if (!isDirectory(request.path) && !fileExists(request.path)) {
-		request.status = 404;
-		setStatus(404, "Not Found");
+		if (errno == ENOENT || errno == ENOTDIR) {
+			std::cout << "File not found: " << request.path << std::endl;
+			setStatus(404, "Not Found");
+		}
+		else if (errno == EACCES)
+			setStatus(403, "Forbidden");
+		else
+			setStatus(500, "Internal Server Error");
 		return;
 	}
 }
 
-void	Response::buildBody(Request &request) {
-	uri = request.path;
-	this->setPath(request);
-	if (autoIndex && isDirectory(request.path))
-		body = generateAutoindexPage(request.path, uri);
-	else if (status_code == 200)
+void	Response::createBody(Request &request) {
+	if (status_code == 200)
 		body = readFile(request.path);
 	else
 		body = readFile("status_errors/" + std::to_string(status_code) + ".html");
 }
 
-void	Response::buildHeaders(Request &request) {
-	headers["Content-Length"] = std::to_string(body.size());
-	if (status_code == 200)
-		headers["Content-Type"] = request.getType();
+void	Response::buildGetBody(Request &request) {
+	if (request.status == 0)
+			this->setGetPath(request);
+	if (autoIndex && isDirectory(request.path))
+		body = generateAutoindexPage(request.path, uri);
 	else
-		headers["Content-Type"] = "text/html";
+		this->createBody(request);
+}
+
+void	Response::buildHeaders(Request &request) {
+	if (status_code != 204) {
+		headers["Content-Length"] = std::to_string(body.size());
+		if (status_code == 200)
+			headers["Content-Type"] = request.getType();
+		else
+			headers["Content-Type"] = "text/html";
+	}
 
 	headers["Connection"] = "keep-alive";
 	headers["Server"] = "Webserv";
 }
 
+void	Response::buildDeleteBody(Request &request) {
+	struct stat fileStat;
+
+	if (stat(request.path.c_str(), &fileStat) == -1) {
+		if (errno == ENOENT) {;
+			setStatus(404, "Not Found");
+		}
+		else if (errno == EACCES)
+			setStatus(403, "Forbidden");
+		else
+			setStatus(500, "Internal Server Error");
+		return;
+	}
+	if (!S_ISREG(fileStat.st_mode)) {
+		setStatus(403, "Forbidden");
+		return;
+	}
+	if (std::remove(request.path.c_str()) != 0) {
+		if (errno == EACCES)
+			setStatus(403, "Forbidden");
+		else
+			setStatus(500, "Internal Server Error");
+		return;
+	}
+	else {
+		setStatus(204, "No Content");
+		body.clear();
+	}
+}
+
 void	Response::build(Request &request) {
 	clear();
+	uri = request.path;
+	request.path = "www" + request.path;
 	this->buildStatusLine(request);
-	this->buildBody(request);
+	if (request.method == "GET" || request.status != 0) {
+		this->buildGetBody(request);
+	}
+	else if (request.method == "DELETE") {
+		this->buildDeleteBody(request);
+		this->createBody(request);
+	}
 	this->buildHeaders(request);
 }
 

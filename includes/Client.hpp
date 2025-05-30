@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 10:05:05 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/28 15:52:33 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/05/30 15:50:43 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,11 +38,15 @@ class Response {
 		~Response();
 		void	buildStatusLine(Request &request);
 		void	buildHeaders(Request &request);
-		void	buildBody(Request &request);
+		void	buildPostHeaders(Request &request);
+		void	buildGetBody(Request &request);
+		void	buildPostBody(Request &request);
+		void	buildDeleteBody(Request &request);
 		void	build(Request &request);
+		void	createBody(Request &request);
 		void	setStatus(int code, const std::string &message);
 		void	clear();
-		void	setPath(Request &request);
+		void	setGetPath(Request &request);
 		std::string toString() const;
 };
 
