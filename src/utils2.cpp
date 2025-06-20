@@ -1,16 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   utils2.c                                           :+:      :+:    :+:   */
+/*   utils2.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/30 10:19:03 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/30 10:19:12 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/06/19 23:53:30 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/include.hpp"
+
+bool iequals(const std::string& a, const std::string& b) {
+	if (a.size() != b.size()) return false;
+	for (size_t i = 0; i < a.size(); ++i) {
+		if (std::tolower((unsigned char)a[i]) != std::tolower((unsigned char)b[i]))
+			return false;
+	}
+	return true;
+}
 
 PathStatus checkPath(const std::string& path_str) {
 	struct stat statbuf;

@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 10:08:13 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/26 18:18:38 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/06/20 05:08:30 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,26 +36,21 @@ bool	Client::getRequest(std::vector<struct pollfd> &fds, size_t *index) {
 	char buffer[1024];
 	int bytes_received = 1;
 
-	// request_raw.clear();
-	// request.clear();
-	while ((bytes_received = recv(fd, buffer, sizeof(buffer), 0)) > 0) {
-		request_raw.append(buffer, bytes_received);
-		if (request_raw.find("\r\n\r\n") != std::string::npos)
-			break;
-	}
-	if (bytes_received == 0 && request_raw.empty()) {
-		// client closed the connection, nothing to parse
+	bytes_received = recv(fd, buffer, sizeof(buffer), 0);
+	if (bytes_received <= 0) {
+		if (bytes_received < 0)
+			std::cerr << "Error receiving data\n";
 		return false;   // signal to kickClient(...)
 	}
-	if (bytes_received < 0) {
-		std::cerr << "Error receiving data\n";
-		return false;
+
+	request_raw.append(buffer, bytes_received);
+
+	std::cout << "outside the parser\n";
+	if (request.parse(request_raw) || request.status != 0) {
+		std::cout << "inside the parser\n";
+		state = WRITING;
+		fds[*index].events = POLLOUT | POLLERR | POLLHUP | POLLNVAL; // Change to POLLOUT for writing response
 	}
-	std::cout << "-------Getting Request from client " << fd << "------" << std::endl;
-	std::cout << request_raw << std::endl;
-	state = WRITING;
-	fds[*index].events = POLLOUT | POLLERR | POLLHUP | POLLNVAL; // Change to POLLOUT for writing response
-	request.parse(request_raw);
 	return true;
 }
 

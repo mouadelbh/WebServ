@@ -6,13 +6,16 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 16:07:51 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/30 10:42:28 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/06/20 05:29:09 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Client.hpp"
 
-Request::Request() : status(0) {}
+Request::Request() : status(0), autoIndex(0), body_length(0), chunk_size(0), body_type(NONE) {
+	parse_state = REQUEST_LINE;
+	chunk_state = SIZE;
+}
 
 Request::~Request() {
 	clear();
@@ -27,118 +30,102 @@ std::string Request::toString() const {
 	return request_line + headers_str + "\r\n" + body;
 }
 
-bool	Request::parseRequestLine(const std::string &line) {
-	size_t pos, end;
+bool	Request::getBodyInfo() {
+	auto it_content = headers.find("Content-Length");
+	auto it_chunked = headers.find("Transfer-Encoding");
 
-	pos = line.find(' ');
-	end = line.find(' ', pos + 1);
-	if (pos == std::string::npos || end == std::string::npos || pos == 0 || end == pos + 1 ||
-		end == line.length() - 1) {
-		status = 400;
-		return false;
+	if (it_chunked != headers.end() && it_content != headers.end()) {
+		status = 400; return false;
 	}
-	method = line.substr(0, pos);
-	path = line.substr(pos + 1, end - pos - 1);
-	version = line.substr(end + 1);
-	if (!isKnownMethod(method) || !isValidRequestPath(path) || !isValidHttpVersion(version)) {
-		status = 400;
-		return false;
-	}
-	if (method != "GET" && method != "POST" && method != "DELETE") {
-		status = 501;
-		return false;
-	}
-	if (version != "HTTP/1.1" && version != "HTTP/1.0") {
-		status = 505;
-		return false;
-	}
-	return true;
-}
-
-bool	Request::parseHeaders(const std::string &headers, size_t &curr) {
-	size_t	pos = 0;
-	size_t	end, colon, vstart;
-	std::string temp, key, value;
-
-	while (true) {
-		end = headers.find("\r\n", pos);
-		if (end == std::string::npos) {
+	if (it_chunked != headers.end()) {
+		if (it_chunked->second != "chunked") {
+			status = 400; return false;
+		}
+		body_type = CHUNKED;
+	} else if (it_content != headers.end()) {
+		body_type = CONTENT;
+		if (!isNumber(it_content->second)) {
 			status = 400;
 			return false;
 		}
-		temp = headers.substr(pos, end - pos);
-		if (temp.empty()) {
-			curr += end + 2;
-			break ;
-		}
-		colon = temp.find(":");
-		if (colon == std::string::npos || colon == 0 || colon == temp.length() - 1) {
+		body_length = std::stoi(it_content->second);
+		if (body_length < 0) {
 			status = 400;
 			return false;
-		}
-		key = temp.substr(0, colon), value = temp.substr(colon + 1);
-		vstart = value.find_first_not_of(" \t");
-		if (vstart != std::string::npos)
-			value = value.substr(vstart);
-		if (!isValidHeaderKey(key) || !isValidHeaderValue(value)) {
-			status = 400;
-			return false;
-		}
-		this->headers[key] = value;
-		pos = end + 2;
-	}
-	return true;
-}
-
-void	Request::parseBody(const std::string &body) {
-	std::unordered_map<std::string, std::string>::iterator it = headers.find("Content-Length");
-	if (it == headers.end() && (method == "POST" || method == "PUT")) {
-		status = 411;
-		return ;
-	}
-	else if (it != headers.end()) {
-		if (!isNumber(it->second)) {
-			status = 400;
-			return ;
-		}
-		int content_length = std::stoi(it->second);
-		if (content_length < 0) {
-			status = 400;
-			return ;
-		}
-		else if (content_length > MAX_BODY_SIZE) {
+		} else if (body_length > MAX_BODY_SIZE) {
 			status = 413;
-			return ;
+			return false;
 		}
-		if (body.length() < static_cast<size_t>(content_length)) {
-			status = 400;
-			return ;
-		}
-		this->body = body.substr(0, content_length);
+	} else
+		body_type = NONE;
+
+	if (body_type == NONE && (method == "POST" || method == "PUT")) {
+		status = 411;
+		return false;
 	}
+	return true;
 }
 
-void	Request::parse(const std::string &str) {
-	size_t	pos = 0;
-	size_t	end = str.find("\r\n", pos);
-
-	if (end == std::string::npos) {
-		status = 400;
-		return;
+bool	Request::getChunkSize(const std::string& buffer) {
+	size_t index = buffer.length();
+	size_t stop = buffer.find(";", autoIndex);
+	if (stop != std::string::npos)
+		index = stop;
+	for (int i = 0; i < static_cast<int>(index); i++) {
+		if (!std::isxdigit(buffer[i])) {
+			status = 400; // Invalid chunk size
+			chunk_size = 0;
+			return false;
+		}
+		chunk_size = chunk_size * 16 + (buffer[i] >= '0' && buffer[i] <= '9' ? buffer[i] - '0' : std::tolower(buffer[i]) - 'a' + 10);
 	}
-
-	clear();
-	if (!parseRequestLine(str.substr(pos, end)))
-		return ;
-	pos = end + 2;
-	if (!parseHeaders(str.substr(pos), pos))
-		return ;
-	std::unordered_map<std::string, std::string>::iterator it = headers.find("Host");
-	if (it == headers.end() || it->second.empty()) {
-		status = 400;
-		return;
+	if (chunk_size < 0) {
+		status = 400; // Negative chunk size
+		chunk_size = 0;
+		return false;
 	}
-	parseBody(str.substr(pos));
+	if (chunk_size > MAX_CHUNK_SIZE) {
+		status = 413; // Chunk size too large
+		chunk_size = 0;
+		return false;
+	}
+	return true;
+}
+
+bool	Request::parseChunkedBody(const std::string& buffer) {
+	size_t size_end;
+	while (autoIndex < (int)buffer.length()) {
+		if (chunk_state == SIZE) {
+			size_end = buffer.find("\r\n", autoIndex);
+			if (size_end == std::string::npos) {
+				return false; // Wait for more data
+			}
+			if (!getChunkSize(buffer.substr(autoIndex, size_end - autoIndex)))
+				return false; // Error in chunk size
+			autoIndex = size_end + 2;
+			if (chunk_size == 0)
+				chunk_state = CHUNK_DONE; // End of chunks
+			else
+				chunk_state = DATA;
+		}
+		if (chunk_state == DATA) {
+			if (buffer.length() - autoIndex < chunk_size + 2) {
+				return false; // Wait for more data
+			}
+			if (buffer.substr(autoIndex + chunk_size, 2) != "\r\n") {
+				status = 400; // Invalid chunk data
+				return false;
+			}
+			body += buffer.substr(autoIndex, chunk_size);
+			autoIndex += chunk_size + 2; // Move past chunk data and CRLF
+			chunk_state = SIZE;
+			chunk_size = 0;
+		}
+		if (chunk_state == CHUNK_DONE) {
+			return true;
+		}
+	}
+	return false;
 }
 
 std::string	Request::getType() {
@@ -161,6 +148,12 @@ bool	Request::pathIsValid(int index) {
 
 void	Request::clear() {
 	status = 0;
+	autoIndex = 0;
+	body_length = 0;
+	parse_state = REQUEST_LINE;
+	chunk_state = SIZE;
+	chunk_size = 0;
+	body_type = NONE;
 	method.clear();
 	path.clear();
 	version.clear();

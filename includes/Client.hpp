@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 10:05:05 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/30 15:50:43 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/06/20 04:55:15 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,18 @@
 #include "include.hpp"
 
 #define ClientsMap std::unordered_map<int, Client>
+
+enum BodyType { NONE, CONTENT, CHUNKED };
+enum ChunkParseState { SIZE, DATA, DATA_CRLF, TRAILERS, CHUNK_DONE };
+
+
+enum ParseState {
+	REQUEST_LINE,
+	HEADERS,
+	BODY,
+	INFO,
+	END
+};
 
 enum ClientState {
 	READING,
@@ -52,22 +64,31 @@ class Response {
 
 class Request {
 	public:
+		ParseState	parse_state;
 		std::string method;
 		std::string path;
 		std::string version;
 		std::unordered_map<std::string, std::string> headers;
 		std::string body;
 		int status;
+		int autoIndex;
+		size_t  body_length;
+		size_t chunk_size;
+		BodyType	body_type;
+		ChunkParseState chunk_state;
 
 		Request();
 		~Request();
 
-		bool	parseHeaders(const std::string &request_str, size_t &curr);
+		bool	parseHeaders(const std::string &request_str);
 		bool	parseRequestLine(const std::string &request_str);
-		void	parseBody(const std::string &method);
-		void	parse(const std::string &request_str);
+		bool	parseBody(const std::string &method);
+		bool	parse(const std::string &request_str);
 		void	clear();
 		bool	pathIsValid(int indexing);
+		bool	getBodyInfo();
+		bool	parseChunkedBody(const std::string &buffer);
+		bool	getChunkSize(const std::string &buffer);
 		std::string	getType();
 		std::string toString() const;
 };

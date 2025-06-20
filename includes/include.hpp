@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/19 16:18:09 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/30 10:23:50 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/06/20 05:06:19 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@
 #include <dirent.h>
 #include <algorithm>
 #include <cerrno>
+#include <cctype>
 #include "Client.hpp"
 #include "Server.hpp"
 
@@ -42,6 +43,7 @@ extern bool autoIndex;
 
 #define PORT 8080
 #define MAX_BODY_SIZE 10485760 // 10MB
+#define MAX_CHUNK_SIZE 131072 // 128KB
 
 enum PathStatus {
 	PATH_IS_FILE,
@@ -65,6 +67,7 @@ bool	isValidHttpVersion(const std::string &version);
 bool	isDirectory(const std::string &path);
 bool	fileReadable(const std::string &directoryPath);
 bool	fileExists(const std::string& path);
+bool	iequals(const std::string& a, const std::string& b);
 std::string generateAutoindexPage(const std::string &directoryPath, const std::string &uri);
 std::string &getStatusCodeMap(int code);
 PathStatus checkPath(const std::string& path_str);

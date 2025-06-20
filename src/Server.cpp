@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 13:50:04 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/28 13:50:08 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/06/20 05:14:55 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,7 @@ void	Server::AcceptConnection(std::unordered_map<int, Client> &clients) {
 		std::cerr << "Error accepting connection" << std::endl;
 		return ;
 	}
+	fcntl(client_fd, F_SETFL, O_NONBLOCK);
 	clients[client_fd] = Client(client_fd, client_addr, client_len);
 	fds.push_back((struct pollfd){client_fd, POLLIN | POLLHUP | POLLERR | POLLNVAL, 0});
 }
