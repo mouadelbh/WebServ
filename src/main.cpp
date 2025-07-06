@@ -15,8 +15,10 @@
 bool	run = true;
 bool 	autoIndex = true;
 
-int main(int ac, char **av) {
-	if (ac != 1) {
+int main(int ac, char **av) 
+{
+	if (ac != 1) 
+	{
 		std::cerr << "Usage: " << av[0] << std::endl;
 		return 1;
 	}
