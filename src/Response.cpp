@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 16:28:05 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/06/19 00:13:12 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/07/10 15:22:00 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,22 +60,23 @@ void	Response::setGetPath(Request &request) {
 			setStatus(403, "Forbidden");
 		else
 			setStatus(500, "Internal Server Error");
-		return;
 	}
 }
 
 void	Response::createBody(Request &request) {
-	if (status_code == 200)
+	if (status_code == 200 || status_code == 201 || status_code == 204)
 		body = readFile(request.path);
 	else
-		body = readFile("status_errors/" + std::to_string(status_code) + ".html");
+		body = readError("status_errors/" + std::to_string(status_code) + ".html", status_code);
 }
 
 void	Response::buildGetBody(Request &request) {
-	if (request.status == 0)
-			this->setGetPath(request);
-	if (autoIndex && isDirectory(request.path))
+	if (status_code == 200)
+		this->setGetPath(request);
+	if (status_code == 200 && autoIndex && isDirectory(request.path)) {
 		body = generateAutoindexPage(request.path, uri);
+		std::cout << "here\n";
+	}
 	else
 		this->createBody(request);
 }
@@ -89,11 +90,11 @@ void	Response::buildHeaders(Request &request) {
 			headers["Content-Type"] = "text/html";
 	}
 
-	headers["Connection"] = "keep-alive";
+	headers["Connection"] = "close";
 	headers["Server"] = "Webserv";
 }
 
-void	Response::buildDeleteBody(Request &request) {
+void	Response::executeDeleteBody(Request &request) {
 	struct stat fileStat;
 
 	if (stat(request.path.c_str(), &fileStat) == -1) {
@@ -128,11 +129,19 @@ void	Response::build(Request &request) {
 	uri = request.path;
 	request.path = "www" + request.path;
 	this->buildStatusLine(request);
-	if (request.method == "GET" || request.status != 0) {
+	if (request.method == "GET" || status_code != 200) {
 		this->buildGetBody(request);
 	}
+	else if (request.method == "POST") {
+		this->executePostBody(request);
+		this->createBody(request);
+	}
 	else if (request.method == "DELETE") {
-		this->buildDeleteBody(request);
+		this->executeDeleteBody(request);
+		this->createBody(request);
+	}
+	else {
+		this->setStatus(501, "Not Implemented");
 		this->createBody(request);
 	}
 	this->buildHeaders(request);

@@ -53,7 +53,7 @@ function send_incomplete_body() {
 
 function send_body_too_large() {
   echo "Test: Body too large"
-  printf "POST / HTTP/1.1\r\nHost: example.com\r\nContent-Length: 100000\r\n\r\n" | nc $HOST $PORT
+  printf "POST / HTTP/1.1\r\nHost: example.com\r\nContent-Length: 100\r\n\r\n" | nc $HOST $PORT
   echo -e "\n---"
 }
 

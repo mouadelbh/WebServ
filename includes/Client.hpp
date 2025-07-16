@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 10:05:05 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/06/20 04:55:15 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/06/28 14:13:58 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,8 +52,11 @@ class Response {
 		void	buildHeaders(Request &request);
 		void	buildPostHeaders(Request &request);
 		void	buildGetBody(Request &request);
-		void	buildPostBody(Request &request);
-		void	buildDeleteBody(Request &request);
+		void	executePostBody(Request &request);
+		void	uploadRawFile(Request &request);
+		void	uploadUrlEncoded(Request &request);
+		void	uploadMultiForm(Request &request);
+		void	executeDeleteBody(Request &request);
 		void	build(Request &request);
 		void	createBody(Request &request);
 		void	setStatus(int code, const std::string &message);
@@ -91,10 +94,10 @@ class Request {
 		bool	getChunkSize(const std::string &buffer);
 		std::string	getType();
 		std::string toString() const;
-};
+	};
 
 class Client {
-	public:
+		public:
 		int	fd;
 		std::string response_raw;
 		std::string request_raw;
@@ -103,6 +106,7 @@ class Client {
 		ClientState state;
 		Request request;
 		Response response;
+		time_t last_activity;
 
 		Client();
 		Client(int fd, sockaddr_in addr, socklen_t addr_len);

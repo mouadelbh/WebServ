@@ -1,3 +1,7 @@
+------geckoformboundary76e280b77c3060d7892ab11b6ce34d5d
+Content-Disposition: form-data; name="files"; filename="Request.cpp"
+Content-Type: text/x-c++src
+
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
@@ -6,7 +10,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 16:07:51 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/06/28 13:47:18 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/06/20 22:41:29 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,19 +66,6 @@ bool	Request::getBodyInfo() {
 	if (body_type == NONE && (method == "POST" || method == "PUT")) {
 		status = 411;
 		return false;
-	}
-	if (body_type != NONE) {
-		auto it_content_type = headers.find("Content-Type");
-		if (it_content_type != headers.end()) {
-			if (!isValidContentType(it_content_type->second)) {
-				status = 415; // Unsupported Media Type
-				return false;
-			}
-		}
-		else {
-			status = 400;
-			return false;
-		}
 	}
 	return true;
 }
@@ -173,3 +164,5 @@ void	Request::clear() {
 	headers.clear();
 	body.clear();
 }
+
+------geckoformboundary76e280b77c3060d7892ab11b6ce34d5d--

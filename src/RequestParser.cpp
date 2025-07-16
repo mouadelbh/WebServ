@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 05:28:14 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/06/20 05:30:37 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/07/10 15:20:04 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,6 +79,14 @@ bool Request::parseHeaders(const std::string& headers_str) {
 		status = 400;
 		return false;
 	}
+	if (method == "POST") {
+		auto it_content_type = headers.find("Content-Type");
+		if (it_content_type == headers.end() || it_content_type->second.empty() \
+		|| !isValidHeaderValue(it_content_type->second)) {
+			status = 400;
+			return false;
+		}
+	}
 	return true;
 }
 
@@ -101,7 +109,6 @@ bool Request::parse(const std::string& buffer) {
 		}
 		autoIndex = line_end + 2;
 		parse_state = HEADERS;
-		std::cout << "Parsed Request Line: method=" << method << ", path=" << path << ", version=" << version << std::endl;
 	}
 
 	if (parse_state == HEADERS) {
@@ -115,7 +122,6 @@ bool Request::parse(const std::string& buffer) {
 		}
 		autoIndex = headers_end + 4;
 		parse_state = INFO;
-		std::cout << "Parsed Headers:\n";
     	for (auto &h : headers)
      	   std::cout << h.first << ": " << h.second << "\n";
 	}
@@ -123,13 +129,12 @@ bool Request::parse(const std::string& buffer) {
 		if (!getBodyInfo())
 			return false; // Error in body info
 		parse_state = BODY;
-		 std::cout << "Body type = " << body_type << ", length = " << body_length << std::endl;
 	}
 	if (parse_state == BODY) {
-		std::cout << "Parsing body...\n";
 		if (body_type == CONTENT) {
-			if (buffer.length() - autoIndex < body_length)
+			if (buffer.length() - autoIndex < body_length) {
 				return false;
+			}
 			if (!parseBody(buffer.substr(autoIndex)))
 				return false;
 		}
@@ -138,7 +143,6 @@ bool Request::parse(const std::string& buffer) {
 				return false;
 		}
 		parse_state = END;
-		std::cout << "Parsed Body: " << body << std::endl;
 	}
 	return parse_state == END;
 }

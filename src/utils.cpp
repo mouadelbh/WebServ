@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 14:33:47 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/30 15:03:30 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/06/28 13:49:02 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -274,6 +274,16 @@ bool isValidHeaderKey(const std::string &key) {
 	return true;
 }
 
+bool isValidContentType(const std::string &contentType) {
+    if (contentType.empty())
+        return false;
+    if (contentType == "application/x-www-form-urlencoded" || contentType == "multipart/form-data" ||
+        contentType == "application/json" || contentType == "text/plain" ||
+        contentType == "text/html" || contentType == "text/html" || contentType == "application/xml")
+        return true;
+    return false;
+}
+
 bool isValidHeaderValue(const std::string &value) {
 	if (value.empty())
 		return false;
@@ -283,6 +293,18 @@ bool isValidHeaderValue(const std::string &value) {
 			return false;
 	}
 	return true;
+}
+
+std::string readError(std::string const &path, int code) {
+	std::ifstream file(path.c_str(), std::ios::in | std::ios::binary);
+	if (!file.is_open())
+		return "<h1>" + std::to_string(code) + " " + getStatusCodeMap(code) + "</h1>";
+
+	std::ostringstream ss;
+	ss << file.rdbuf();
+	file.close();
+
+	return ss.str();
 }
 
 std::string readFile(std::string const &path) {
@@ -314,11 +336,13 @@ void	init(char **av) {
 	signal(SIGINT, terminate_server);
 }
 
-void	kickClient(std::unordered_map<int, Client> &clients, std::vector<struct pollfd> &fds, size_t *index) {
-	int client_fd = fds[*index].fd;
+void	kickClient(std::unordered_map<int, Client> &clients, std::vector<struct pollfd> &fds, size_t *index, bool *client) {
+    int client_fd = fds[*index].fd;
 	std::cout << "Kicking client with fd: " << client_fd << std::endl;
+    // shutdown(client_fd, SHUT_RDWR); // Shutdown the socket to prevent further communication
 	close(client_fd);
+    epoll_ctl(fds[*index].fd, EPOLL_CTL_DEL, client_fd, NULL); // Remove from epoll
 	clients.erase(client_fd);
 	fds.erase(fds.begin() + *index);
-	*index = 0; // Reset index to avoid out of bounds
+	*client = true;
 }

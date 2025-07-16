@@ -6,14 +6,14 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/19 16:21:14 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/05/28 15:07:35 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/07/10 14:25:09 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/include.hpp"
 
 bool	run = true;
-bool 	autoIndex = true;
+bool 	autoIndex = false;
 
 int main(int ac, char **av) {
 	if (ac != 1) {

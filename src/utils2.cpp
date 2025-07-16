@@ -6,11 +6,27 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/30 10:19:03 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/06/19 23:53:30 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/06/20 23:34:02 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/include.hpp"
+
+bool checkIdle(Client& client) {
+	time_t current_time = time(NULL);
+	ParseState &state = client.request.parse_state;
+	std::cout << "Checking idle state for client " << client.fd << " at time " << current_time << std::endl;
+	if ((state == REQUEST_LINE || state == END) && current_time - client.last_activity > IDLE_TIMEOUT) {
+		return false; // Signal to kick the client
+	}
+	if (state == HEADERS && current_time - client.last_activity > HEADERS_TIMEOUT) {
+		return false; // Signal to kick the client
+	}
+	if ((state == BODY || state == INFO) && current_time - client.last_activity > IDLE_TIMEOUT) {
+		return false; // Signal to kick the client
+	}
+	return true;
+}
 
 bool iequals(const std::string& a, const std::string& b) {
 	if (a.size() != b.size()) return false;

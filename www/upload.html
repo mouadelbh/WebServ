@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Files - 1337 School</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="https://www.1337.ma/wp-content/uploads/2020/02/cropped-favicon-32x32.png" type="image/png">
+</head>
+<body class="bg-gray-900 text-gray-100 font-inter">
+
+    <header class="bg-gray-900/80 backdrop-blur-md sticky top-0 z-50 shadow-xl">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html" class="flex items-center space-x-2">
+                <img src="https://www.1337.ma/wp-content/uploads/2019/11/logo-1337.svg" alt="1337 School Logo" class="h-10 md:h-12">
+                <span class="text-2xl md:text-3xl font-orbitron font-bold tracking-wider">1337</span>
+            </a>
+            <div class="space-x-4 md:space-x-6">
+                <a href="index.html" class="text-lg hover:text-green-400 transition duration-300 ease-in-out">Home</a>
+                <a href="about.html" class="text-lg hover:text-green-400 transition duration-300 ease-in-out">About Us</a>
+                <a href="upload.html" class="text-lg hover:text-green-400 transition duration-300 ease-in-out border-b-2 border-green-400 pb-1">Upload</a>
+                <a href="index.html#contact" class="text-lg hover:text-green-400 transition duration-300 ease-in-out">Contact</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-6 py-16 md:py-24">
+        <div class="max-w-2xl mx-auto bg-gray-800 p-8 rounded-xl shadow-2xl">
+            <h1 class="text-4xl font-orbitron font-bold text-green-400 mb-6 text-center">Upload Files</h1>
+            <p class="text-gray-300 leading-relaxed mb-8 text-center">
+                Select one or more files to upload to the server.
+            </p>
+            <form action="/upload" method="post" enctype="multipart/form-data">
+                <div class="mb-6">
+                    <label for="file-upload" class="block text-lg font-medium text-gray-300 mb-2">Choose files</label>
+                    <input type="file" name="files" id="file-upload" multiple class="block w-full text-sm text-gray-400
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-full file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-green-500 file:text-gray-900
+                        hover:file:bg-green-600" />
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="bg-green-500 hover:bg-green-600 text-gray-900 font-bold py-3 px-8 rounded-lg text-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg">
+                        Upload
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer class="bg-gray-900 border-t border-gray-700 py-8">
+        <div class="container mx-auto px-6 text-center text-gray-500">
+            <div class="mb-4">
+                <img src="https://www.1337.ma/wp-content/uploads/2019/11/logo-1337.svg" alt="1337 School Logo" class="h-10 mx-auto">
+            </div>
+            <p>&copy; <span id="currentYear"></span> 1337 School. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+    </script>
+
+</body>
+</html>

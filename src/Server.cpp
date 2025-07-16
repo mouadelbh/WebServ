@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 13:50:04 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/06/20 05:14:55 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/07/10 15:23:53 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,30 +59,44 @@ void	Server::AcceptConnection(std::unordered_map<int, Client> &clients) {
 }
 
 void	Server::runServer(std::unordered_map<int, Client> &clients) {
+	bool client_kicked;
 	while (run) {
 		try {
 			int res = poll(fds.data(), fds.size(), -1);
+
 			if (res < 0 || run == false)
 				break ;
-			for (size_t i = 0; i < fds.size(); i++) {
-			int current_fd = fds[i].fd;
-
-			if (fds[i].revents & (POLLERR | POLLHUP | POLLNVAL)) {
-				if (current_fd == socket_fd) {
-					std::cerr << "SERVER SOCKET ERROR!" << std::endl;
-					break;
+			for (size_t i = 0; i < fds.size();) {
+				std::cout << "Checking fd: " << fds[i].fd << std::endl;
+				int current_fd = fds[i].fd;
+				client_kicked = false;
+				if (fds[i].revents & (POLLERR | POLLHUP | POLLNVAL)) {
+					if (current_fd == socket_fd) {
+						std::cerr << "SERVER SOCKET ERROR!" << std::endl;
+						break;
+					}
+					else
+						kickClient(clients, fds, &i, &client_kicked);
+					continue;
 				}
-				else
-					kickClient(clients, fds, &i);
-				continue;
-			}
 
-			if (fds[i].revents & POLLIN && current_fd == socket_fd)
-				this->AcceptConnection(clients);
-			else if (fds[i].revents & POLLIN && clients[current_fd].state != WRITING)
-				clients[current_fd].getRequest(fds, &i) ? (void)0 : kickClient(clients, fds, &i);
-			else if (fds[i].revents & POLLOUT && clients[current_fd].state == WRITING)
-				clients[current_fd].sendResponse(fds, &i) ? (void)0 : kickClient(clients, fds, &i);
+				if (current_fd == socket_fd) {
+					if (fds[i].revents & POLLIN)
+						this->AcceptConnection(clients);
+					i++;
+					continue;
+				}
+				if (!checkIdle(clients[current_fd])) {
+					kickClient(clients, fds, &i, &client_kicked);
+					continue;
+				}
+				if (fds[i].revents & POLLIN && clients[current_fd].state != WRITING)
+					clients[current_fd].getRequest(fds, &i) ? (void)0 : kickClient(clients, fds, &i, &client_kicked);
+				else if (fds[i].revents & POLLOUT && clients[current_fd].state == WRITING) {
+					clients[current_fd].sendResponse(fds, &i) ? (void)0 : kickClient(clients, fds, &i, &client_kicked);
+				}
+				if (!client_kicked)
+					i++;
 			}
 		}
 		catch (const std::bad_alloc &e) {
