@@ -12,7 +12,7 @@
 
 #include "../includes/Client.hpp"
 
-Request::Request() : status(0), autoIndex(0), body_length(0), chunk_size(0), body_type(NONE) {
+Request::Request() : status(0), autoIndex(0), body_length(0), chunk_size(0), body_type(NONE), server_config(nullptr) {
 	parse_state = REQUEST_LINE;
 	chunk_state = SIZE;
 }
@@ -21,7 +21,13 @@ Request::~Request() {
 	clear();
 }
 
-std::string Request::toString() const {
+void Request::setServerConfig(const ServerConfig* config)
+{
+	server_config = config;
+}
+
+std::string Request::toString() const 
+{
 	std::string request_line = method + " " + path + " " + version + "\r\n";
 	std::string headers_str;
 	for (const auto &header : headers) {
@@ -49,10 +55,8 @@ bool	Request::getBodyInfo() {
 			return false;
 		}
 		body_length = std::stoi(it_content->second);
-		if (body_length < 0) {
-			status = 400;
-			return false;
-		} else if (body_length > MAX_BODY_SIZE) {
+		// body_length is size_t (unsigned), so no need to check < 0
+		if (body_length > MAX_BODY_SIZE) {
 			status = 413;
 			return false;
 		}
@@ -79,11 +83,7 @@ bool	Request::getChunkSize(const std::string& buffer) {
 		}
 		chunk_size = chunk_size * 16 + (buffer[i] >= '0' && buffer[i] <= '9' ? buffer[i] - '0' : std::tolower(buffer[i]) - 'a' + 10);
 	}
-	if (chunk_size < 0) {
-		status = 400; // Negative chunk size
-		chunk_size = 0;
-		return false;
-	}
+	// chunk_size is size_t (unsigned), so no need to check < 0
 	if (chunk_size > MAX_CHUNK_SIZE) {
 		status = 413; // Chunk size too large
 		chunk_size = 0;
@@ -159,4 +159,69 @@ void	Request::clear() {
 	version.clear();
 	headers.clear();
 	body.clear();
+}
+
+const LocationConfig* Request::findLocation(const std::string& requestPath) {
+	if (!server_config) return nullptr;
+	
+	const LocationConfig* bestMatch = nullptr;
+	size_t longestMatch = 0;
+	
+	for (const auto& location : server_config->locations)
+	{
+		// Handle exact path matches
+		if (location.path == requestPath) 
+		{
+			return &location;
+		}
+		
+		// Handle prefix matches
+		if (requestPath.find(location.path) == 0) 
+		{
+			if (location.path.length() > longestMatch) 
+			{
+				longestMatch = location.path.length();
+				bestMatch = &location;
+			}
+		}
+		
+		// Handle extension matches (*.ext)
+		if (location.path.find("*.") == 0) 
+		{
+			std::string extension = location.path.substr(1); // Remove *
+			if (endsWith(requestPath, extension)) {
+				return &location;
+			}
+		}
+	}
+	
+	return bestMatch;
+}
+
+bool Request::isMethodAllowed(const std::string& requestPath) {
+	if (!server_config) return true; // Default allow if no config
+	
+	const LocationConfig* location = findLocation(requestPath);
+	std::vector<std::string> allowedMethods;
+	
+	if (location && !location->methods.empty()) 
+	{
+		allowedMethods = location->methods;
+	}
+	else 
+	{
+		allowedMethods = server_config->methods;
+	}
+	
+	// If no methods specified, allow all
+	if (allowedMethods.empty()) return true;
+	
+	// Check if current method is in allowed list
+	for (const auto& allowedMethod : allowedMethods) {
+		if (method == allowedMethod) {
+			return true;
+		}
+	}
+	
+	return false;
 }

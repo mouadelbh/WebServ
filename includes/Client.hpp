@@ -45,9 +45,11 @@ class Response {
 		std::string uri;
 		std::unordered_map<std::string, std::string> headers;
 		std::string body;
+		const ServerConfig* server_config; // Pointer to server configuration
 
 		Response();
 		~Response();
+		void	setServerConfig(const ServerConfig* config);
 		void	buildStatusLine(Request &request);
 		void	buildHeaders(Request &request);
 		void	buildPostHeaders(Request &request);
@@ -60,6 +62,8 @@ class Response {
 		void	clear();
 		void	setGetPath(Request &request);
 		std::string toString() const;
+		std::string getErrorPage(int code);
+		std::string getContentType(const std::string& path);
 };
 
 class Request {
@@ -76,10 +80,12 @@ class Request {
 		size_t chunk_size;
 		BodyType	body_type;
 		ChunkParseState chunk_state;
+		const ServerConfig* server_config; // pointer to server configuration
 
 		Request();
 		~Request();
 
+		void	setServerConfig(const ServerConfig* config);
 		bool	parseHeaders(const std::string &request_str);
 		bool	parseRequestLine(const std::string &request_str);
 		bool	parseBody(const std::string &method);
@@ -91,9 +97,12 @@ class Request {
 		bool	getChunkSize(const std::string &buffer);
 		std::string	getType();
 		std::string toString() const;
+		bool	isMethodAllowed(const std::string& path);
+		const LocationConfig* findLocation(const std::string& path);
 };
 
-class Client {
+class Client 
+{
 	public:
 		int	fd;
 		std::string response_raw;
@@ -103,10 +112,12 @@ class Client {
 		ClientState state;
 		Request request;
 		Response response;
+		const ServerConfig* server_config;
 
 		Client();
 		Client(int fd, sockaddr_in addr, socklen_t addr_len);
 		~Client();
+		void	setServerConfig(const ServerConfig* config);
 		void	buildResponse();
 		bool	getRequest(std::vector<struct pollfd> &fds, size_t *index);
 		bool	sendResponse(std::vector<struct pollfd> &fds, size_t *index);

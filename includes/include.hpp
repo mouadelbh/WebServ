@@ -35,11 +35,14 @@
 #include <algorithm>
 #include <cerrno>
 #include <cctype>
+#include "../Parse_Config/Parser.hpp"
 #include "Client.hpp"
 #include "Server.hpp"
+#include "ServerManager.hpp"
 
 extern bool run;
 extern bool autoIndex;
+extern const ServerConfig* g_current_server_config; // Global pointer to current server config
 
 #define PORT 8080
 #define MAX_BODY_SIZE 10485760 // 10MB
