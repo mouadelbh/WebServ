@@ -12,25 +12,34 @@
 
 #include "../includes/Client.hpp"
 
-Client::Client() : fd(-1), addr(), addr_len(0), state(READING) {
+Client::Client() : fd(-1), addr(), addr_len(0), state(READING), server_config(nullptr) 
+{
 	response_raw = "HTTP/1.1 200 OK\r\n"
 				"Content-Type: text/plain\r\n"
-				"Content-Length: 17\r\n"
+				"Content-Length: 13\r\n"
 				"\r\n"
-				"Niggas in Paris!\n";
+				"Hello World!\n";
 }
 
 Client::Client(int fd, sockaddr_in addr, socklen_t addr_len)
-	: fd(fd), addr(addr), addr_len(addr_len) {
+	: fd(fd), addr(addr), addr_len(addr_len), server_config(nullptr) 
+{
 	this->state = READING;
 	this->response_raw = "HTTP/1.1 200 OK\r\n"
 			"Content-Type: text/plain\r\n"
-			"Content-Length: 17\r\n"
+			"Content-Length: 13\r\n"
 			"\r\n"
-			"Niggas in Paris!\n";
+			"Hello World!\n";
 }
 
 Client::~Client() {}
+
+void Client::setServerConfig(const ServerConfig* config) 
+{
+	server_config = config;
+	request.setServerConfig(config);
+	response.setServerConfig(config);
+}
 
 bool	Client::getRequest(std::vector<struct pollfd> &fds, size_t *index) {
 	char buffer[1024];

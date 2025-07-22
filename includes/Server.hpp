@@ -21,11 +21,13 @@ class Server {
 		std::vector<struct pollfd> fds;
 		int	socket_fd;
 		int	index;
+		ServerConfig config;
 
 		Server();
 		~Server();
-		void	initServer();
+		void	initServer(const ServerConfig& serverConfig);
 		void	AcceptConnection(std::unordered_map<int, Client> &clients);
 		void	runServer(std::unordered_map<int, Client> &clients);
+		const ServerConfig& getConfig() const;
 };
 

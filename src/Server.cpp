@@ -20,24 +20,41 @@ Server::~Server() {
 	}
 }
 
-void	Server::initServer() {
+const ServerConfig& Server::getConfig() const {
+	return config;
+}
+
+void	Server::initServer(const ServerConfig& serverConfig) 
+{
 	int opt = 1;
+	config = serverConfig; // Store the configuration
 
 	socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (socket_fd < 0)
 		std::cerr << "Error creating socket" << std::endl, exit(1);
+	
 	sockaddr_in addr;
 	fds.push_back((struct pollfd){socket_fd, POLLIN | POLLERR | POLLHUP | POLLNVAL, 0});
 	memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
-	addr.sin_port = htons(PORT);
-	addr.sin_addr.s_addr = INADDR_ANY;
+	
+	if (config.host == "localhost") {
+		addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	} else if (config.host == "127.0.0.1") {
+		addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	} else {
+		addr.sin_addr.s_addr = INADDR_ANY;
+	}
+	
+	addr.sin_port = htons(config.port);
 	setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+	
 	if (bind(socket_fd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-		std::cerr << "Error binding socket" << std::endl, exit(1);
+		std::cerr << "Error binding socket on " << config.host << ":" << config.port << std::endl, exit(1);
 	if (listen(socket_fd, 100) < 0)
 		std::cerr << "Error listening on socket" << std::endl, exit(1);
-	std::cout << "Server initialized on port " << PORT << std::endl;
+	
+	std::cout << "Server '" << config.server_name << "' initialized on " << config.host << ":" << config.port << std::endl;
 }
 
 void	Server::AcceptConnection(std::unordered_map<int, Client> &clients) {
@@ -55,11 +72,14 @@ void	Server::AcceptConnection(std::unordered_map<int, Client> &clients) {
 	}
 	fcntl(client_fd, F_SETFL, O_NONBLOCK);
 	clients[client_fd] = Client(client_fd, client_addr, client_len);
+	clients[client_fd].setServerConfig(&config); // Pass server configuration to client
 	fds.push_back((struct pollfd){client_fd, POLLIN | POLLHUP | POLLERR | POLLNVAL, 0});
 }
 
-void	Server::runServer(std::unordered_map<int, Client> &clients) {
-	while (run) {
+void	Server::runServer(std::unordered_map<int, Client> &clients) 
+{
+	while (run) 
+	{
 		try {
 			int res = poll(fds.data(), fds.size(), -1);
 			if (res < 0 || run == false)
