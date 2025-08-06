@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/28 13:59:57 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/06 14:09:04 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/06 14:51:06 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,7 +125,6 @@ void	Response::uploadUrlEncoded() {
 
 void	Response::saveDataToFile(const std::string &data, std::string filename) {
 	std::string upload_dir = "www/uploads"; // Or get from config
-	static int test;
 	// Ensure the upload directory exists
 	if (access(upload_dir.c_str(), F_OK) == -1) {
 		if (mkdir(upload_dir.c_str(), 0755) == -1) {
@@ -134,22 +133,19 @@ void	Response::saveDataToFile(const std::string &data, std::string filename) {
 		}
 	}
 	std::cout << RED << data << RESET << std::endl;
+	std::cout << "filename: " << filename << std::endl;
 	// Create a unique filename (e.g., using a timestamp)
 	if (filename.empty()) {
 		std::time_t result = std::time(nullptr);
 		filename = upload_dir + "/upload_" + std::to_string(result) + ".txt";
 	}
+	else
+		filename = upload_dir + "/" + filename;
 	// Create and write to the new file
 	std::ofstream outfile(filename.c_str(), std::ios::binary);
 	if (!outfile) {
 		setStatus(500, "Internal Server Error");
 		return;
-	}
-	if (test == 0) {
-		std::ofstream outfile2("test.txt", std::ios::binary);
-		outfile2.write(data.c_str(), data.length());
-		outfile2.close();
-		test++;
 	}
 	outfile.write(data.c_str(), data.length());
 	outfile.close();
