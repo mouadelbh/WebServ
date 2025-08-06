@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/28 13:59:57 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/05 18:13:26 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/06 14:09:04 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ void	Response::uploadRawFile() {
 	}
 
 	setStatus(201, "Created");
-	headers["Location"] = filename.substr(filename.find("/"));
+	headers["Location"] = upload_dir;
 }
 
 bool	urlDecoder(const std::string &str, std::string &result) {
@@ -125,7 +125,7 @@ void	Response::uploadUrlEncoded() {
 
 void	Response::saveDataToFile(const std::string &data, std::string filename) {
 	std::string upload_dir = "www/uploads"; // Or get from config
-
+	static int test;
 	// Ensure the upload directory exists
 	if (access(upload_dir.c_str(), F_OK) == -1) {
 		if (mkdir(upload_dir.c_str(), 0755) == -1) {
@@ -133,7 +133,7 @@ void	Response::saveDataToFile(const std::string &data, std::string filename) {
 			return;
 		}
 	}
-
+	std::cout << RED << data << RESET << std::endl;
 	// Create a unique filename (e.g., using a timestamp)
 	if (filename.empty()) {
 		std::time_t result = std::time(nullptr);
@@ -145,7 +145,12 @@ void	Response::saveDataToFile(const std::string &data, std::string filename) {
 		setStatus(500, "Internal Server Error");
 		return;
 	}
-
+	if (test == 0) {
+		std::ofstream outfile2("test.txt", std::ios::binary);
+		outfile2.write(data.c_str(), data.length());
+		outfile2.close();
+		test++;
+	}
 	outfile.write(data.c_str(), data.length());
 	outfile.close();
 
@@ -153,24 +158,29 @@ void	Response::saveDataToFile(const std::string &data, std::string filename) {
 		setStatus(500, "Internal Server Error");
 		return;
 	}
-
+	std::cout << GREEN << data << RESET << std::endl;
 	setStatus(201, "Created");
-	headers["Location"] = filename.substr(filename.find("/"));
+	headers["Location"] = upload_dir;
 }
 
 void	Response::saveMultiFormDataToFile(std::string data) {
 	size_t headers_pos = data.find("\r\n\r\n", 0);
 	std::string filename = "";
 	std::string content;
+	std::cout << RED << data << RESET << std::endl;
 	if (headers_pos == std::string::npos) {
 		std::cerr << "Invalid multipart data format." << std::endl;
 		return;
 	}
 	std::string headers = data.substr(0, headers_pos);
-	size_t pos = headers.find("filename=");
+	size_t pos = headers.find("filename=\"");
 	if (pos != std::string::npos) {
 		pos += 10;
 		size_t end_pos = headers.find('"', pos);
+		if (end_pos == std::string::npos) {
+			std::cerr << "Invalid filename format in multipart data." << std::endl;
+			return;
+		}
 		filename = headers.substr(pos, end_pos - pos);
 	}
 	content = data.substr(headers_pos + 4); // Skip the \r\n after headers
@@ -182,48 +192,75 @@ void	Response::saveMultiFormDataToFile(std::string data) {
 	if (filename.empty()) {
 		filename = "upload_" + std::to_string(std::time(nullptr)) + ".txt"; // Default filename
 	}
-	saveDataToFile(content, filename);
+	saveDataToFile(data, filename);
 }
 
-void	Response::uploadMultiForm(std::string &content_type) {
-	std::string	boundary;
-	std::string last_boundary;
-	std::string body = request->body;
-	size_t pos = content_type.find("boundary=");
+void Response::uploadMultiForm(std::string &content_type) {
+    std::string boundary;
+    std::string last_boundary;
+    std::string body = request->body;
+    size_t pos = content_type.find("boundary=");
 
-	if (pos == std::string::npos) {
-		request->status = 400; // Bad Request - no boundary found
-		return;
-	}
-	boundary = "--" + content_type.substr(pos + 9); // 9 is length of "boundary="
-	if (boundary.empty()) {
-		request->status = 400; // Bad Request - empty boundary
-		return;
-	}
-	last_boundary = boundary + "--";
-	pos = body.find(boundary, 0);
-	if (pos == std::string::npos) {
-		request->status = 400; // Bad Request - no boundary found
-		return;
-	}
-	while (body.substr(pos, last_boundary.length()) != last_boundary) {
-		pos += boundary.length(); // Move past the boundary
-		if (body.substr(pos, 2) == "\r\n") {
-			pos += 2; // Skip the CRLF after the boundary
-		} else {
-			request->status = 400; // Bad Request - expected CRLF after boundary
-			return;
+    if (pos == std::string::npos) {
+        request->status = 400;
+        return;
+    }
+
+    std::string boundary_value = content_type.substr(pos + 9);
+    size_t boundary_end = boundary_value.find_first_of("; \t\r\n");
+    if (boundary_end != std::string::npos) {
+        boundary_value = boundary_value.substr(0, boundary_end);
+    }
+
+    boundary = "--" + boundary_value;
+    last_boundary = boundary + "--";
+
+	std::cout << YELLOW << body << RESET << std::endl;
+    std::cout << "Boundary: [" << boundary << "]" << std::endl;
+    std::cout << "Last boundary: [" << last_boundary << "]" << std::endl;
+    // Find first boundary
+    pos = body.find(boundary);
+    if (pos == std::string::npos) {
+        request->status = 400;
+        return;
+    }
+
+	while (pos != std::string::npos) {
+		std::cout << "Current pos: " << pos << std::endl;
+
+		if (body.substr(pos, last_boundary.length()) == last_boundary) {
+			std::cout << "Found final boundary!" << std::endl;
+			break;
 		}
-		size_t end_pos = body.find(boundary, pos);
-		if (end_pos == std::string::npos) {
-			request->status = 400; // Bad Request - no closing boundary found
-			return;
+
+		pos += boundary.length();
+		if (pos + 2 <= body.length() && body.substr(pos, 2) == "\r\n") {
+			pos += 2;
 		}
-		saveMultiFormDataToFile(body.substr(pos, end_pos - pos));
-		pos = end_pos;
+
+		size_t next_boundary = body.find(boundary, pos);
+
+		if (next_boundary == std::string::npos) {
+			std::cout << "No more boundaries found" << std::endl;
+			break;
+		}
+
+		std::cout << "Processing part from " << pos << " to " << next_boundary << std::endl;
+
+		std::string part_data = body.substr(pos, next_boundary - pos);
+
+		// Remove trailing CRLF
+
+		saveMultiFormDataToFile(part_data);
+
+		// Move past the current boundary so we don't reprocess it
+		pos = next_boundary;
 	}
-	if (status_code == 200)
-		setStatus(201, "Created");
+
+    if (status_code == 200) {
+        setStatus(201, "Created");
+	}
+	std::cout << status_code << " " << status_message << std::endl;
 }
 
 void	Response::executePostBody() {

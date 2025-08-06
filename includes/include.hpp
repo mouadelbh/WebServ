@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/19 16:18:09 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/06/21 22:46:21 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/06 13:36:42 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,15 @@
 
 extern bool run;
 extern bool autoIndex;
+
+
+#define GREEN "\033[1;32m"
+#define RED     "\033[1;31m"
+#define YELLOW  "\033[1;33m"
+#define BLUE    "\033[1;34m"
+#define CYAN    "\033[1;36m"
+#define WHITE   "\033[1;37m"
+#define RESET   "\033[0m"
 
 #define PORT 8080
 #define MAX_BODY_SIZE 10000000 // 10MB
