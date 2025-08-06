@@ -6,13 +6,13 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 16:28:05 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/07/10 15:22:00 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/05 18:09:33 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Client.hpp"
 
-Response::Response() : version("HTTP/1.1") ,status_code(200) {}
+Response::Response() : version("HTTP/1.1") ,status_code(200) ,request(NULL) {}
 
 Response::~Response() {
 	clear();
@@ -33,27 +33,27 @@ std::string Response::toString() const {
 	return oss.str();
 }
 
-void	Response::buildStatusLine(Request &request) {
+void	Response::buildStatusLine() {
 	version = "HTTP/1.1";
-	if (request.status != 0)
-		setStatus(request.status, getStatusCodeMap(request.status));
-	std::cout << "Path: " << request.path << " status: " << status_code << std::endl;
+	if (request->status != 0)
+		setStatus(request->status, getStatusCodeMap(request->status));
+	std::cout << "Path: " << request->path << " status: " << status_code << std::endl;
 }
 
-void	Response::setGetPath(Request &request) {
-	std::string &path = request.path;
+void	Response::setGetPath() {
+	std::string &path = request->path;
 
-	if (isDirectory(request.path) && !endsWith(request.path, "/"))
+	if (isDirectory(request->path) && !endsWith(request->path, "/"))
 		path += "/";
-	if (isDirectory(request.path) && fileReadable(request.path + "index.html"))
+	if (isDirectory(request->path) && fileReadable(request->path + "index.html"))
 		path += "index.html";
-	if (isDirectory(request.path) && !fileReadable(request.path + "index.html") && !autoIndex) {
+	if (isDirectory(request->path) && !fileReadable(request->path + "index.html") && !autoIndex) {
 		setStatus(403, "Forbidden");
 		return;
 	}
-	if (!isDirectory(request.path) && !fileExists(request.path)) {
+	if (!isDirectory(request->path) && !fileExists(request->path)) {
 		if (errno == ENOENT || errno == ENOTDIR) {
-			std::cout << "File not found: " << request.path << std::endl;
+			std::cout << "File not found: " << request->path << std::endl;
 			setStatus(404, "Not Found");
 		}
 		else if (errno == EACCES)
@@ -63,29 +63,34 @@ void	Response::setGetPath(Request &request) {
 	}
 }
 
-void	Response::createBody(Request &request) {
-	if (status_code == 200 || status_code == 201 || status_code == 204)
-		body = readFile(request.path);
+void	Response::createBody() {
+	if (status_code == 204) {
+		body.clear();
+		return;
+	}
+	else if (status_code == 201)
+		body = readFile("www/upload.html");
+	else if (status_code == 200)
+		body = readFile(request->path);
 	else
 		body = readError("status_errors/" + std::to_string(status_code) + ".html", status_code);
 }
 
-void	Response::buildGetBody(Request &request) {
+void	Response::buildGetBody() {
 	if (status_code == 200)
-		this->setGetPath(request);
-	if (status_code == 200 && autoIndex && isDirectory(request.path)) {
-		body = generateAutoindexPage(request.path, uri);
-		std::cout << "here\n";
+		this->setGetPath();
+	if (status_code == 200 && autoIndex && isDirectory(request->path)) {
+		body = generateAutoindexPage(request->path, uri);
 	}
 	else
-		this->createBody(request);
+		this->createBody();
 }
 
-void	Response::buildHeaders(Request &request) {
+void	Response::buildHeaders() {
 	if (status_code != 204) {
 		headers["Content-Length"] = std::to_string(body.size());
 		if (status_code == 200)
-			headers["Content-Type"] = request.getType();
+			headers["Content-Type"] = request->getType();
 		else
 			headers["Content-Type"] = "text/html";
 	}
@@ -94,10 +99,10 @@ void	Response::buildHeaders(Request &request) {
 	headers["Server"] = "Webserv";
 }
 
-void	Response::executeDeleteBody(Request &request) {
+void	Response::executeDeleteBody() {
 	struct stat fileStat;
 
-	if (stat(request.path.c_str(), &fileStat) == -1) {
+	if (stat(request->path.c_str(), &fileStat) == -1) {
 		if (errno == ENOENT) {;
 			setStatus(404, "Not Found");
 		}
@@ -111,7 +116,7 @@ void	Response::executeDeleteBody(Request &request) {
 		setStatus(403, "Forbidden");
 		return;
 	}
-	if (std::remove(request.path.c_str()) != 0) {
+	if (std::remove(request->path.c_str()) != 0) {
 		if (errno == EACCES)
 			setStatus(403, "Forbidden");
 		else
@@ -124,27 +129,28 @@ void	Response::executeDeleteBody(Request &request) {
 	}
 }
 
-void	Response::build(Request &request) {
+void	Response::build() {
 	clear();
-	uri = request.path;
-	request.path = "www" + request.path;
-	this->buildStatusLine(request);
-	if (request.method == "GET" || status_code != 200) {
-		this->buildGetBody(request);
+	uri = request->path;
+	request->path = "www" + request->path;
+	this->buildStatusLine();
+
+	if (request->method == "GET" || status_code != 200) {
+		this->buildGetBody();
 	}
-	else if (request.method == "POST") {
-		this->executePostBody(request);
-		this->createBody(request);
+	else if (request->method == "POST") {
+		this->executePostBody();
+		this->createBody();
 	}
-	else if (request.method == "DELETE") {
-		this->executeDeleteBody(request);
-		this->createBody(request);
+	else if (request->method == "DELETE") {
+		this->executeDeleteBody();
+		this->createBody();
 	}
 	else {
 		this->setStatus(501, "Not Implemented");
-		this->createBody(request);
+		this->createBody();
 	}
-	this->buildHeaders(request);
+	this->buildHeaders();
 }
 
 void	Response::clear() {

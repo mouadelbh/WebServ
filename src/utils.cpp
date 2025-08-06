@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 14:33:47 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/06/28 13:49:02 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/05 14:53:56 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -275,12 +275,32 @@ bool isValidHeaderKey(const std::string &key) {
 }
 
 bool isValidContentType(const std::string &contentType) {
-    if (contentType.empty())
+    if (contentType.empty()) {
         return false;
-    if (contentType == "application/x-www-form-urlencoded" || contentType == "multipart/form-data" ||
-        contentType == "application/json" || contentType == "text/plain" ||
-        contentType == "text/html" || contentType == "text/html" || contentType == "application/xml")
-        return true;
+    }
+    // List of content types that are checked as prefixes
+    static const std::string valid_types[] = {
+        "application/x-www-form-urlencoded",
+        "multipart/form-data",
+        "application/json",
+        "text/plain",
+        "text/html",
+        "text/css",          // Added
+        "image/jpeg",        // Optional: for raw image uploads
+        "image/png",         // Optional: for raw image uploads
+        "image/gif",         // Optional: for raw image uploads
+        "application/javascript", // Optional: for raw JS uploads
+        "application/xml",
+        "" // Sentinel value
+    };
+
+    for (int i = 0; !valid_types[i].empty(); ++i) {
+        // Use rfind to check if the contentType starts with a valid type
+        if (contentType.rfind(valid_types[i], 0) == 0) {
+            return true;
+        }
+    }
+
     return false;
 }
 

@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 10:08:13 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/07/24 15:21:59 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/05 18:00:11 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ Client::Client() : fd(-1), addr(), addr_len(0), state(READING) {
 				"Content-Length: 17\r\n"
 				"\r\n"
 				"Niggas in Paris!\n";
-	last_activity = NULL;
+	last_activity = time(NULL);
 }
 
 Client::Client(int fd, sockaddr_in addr, socklen_t addr_len)
@@ -67,8 +67,10 @@ bool	Client::getRequest(std::vector<struct pollfd> &fds, size_t *index) {
 }
 
 void	Client::buildResponse() {
-	response.build(request);
+	response.request = &request;
+	response.build();
 	response_raw = response.toString();
+	std::cout << response_raw << std::endl;
 }
 
 bool	Client::sendResponse(std::vector<struct pollfd> &fds, size_t *index) {
@@ -96,3 +98,9 @@ void	Client::clear() {
 	request.clear();
 	response.clear();
 }
+
+
+
+
+
+

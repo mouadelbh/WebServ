@@ -6,7 +6,7 @@
 #    By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/24 10:08:38 by mel-bouh          #+#    #+#              #
-#    Updated: 2025/06/28 14:02:53 by mel-bouh         ###   ########.fr        #
+#    Updated: 2025/08/05 13:38:52 by mel-bouh         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,7 +20,7 @@ NAME = webserv
 # Source files: Added Server.cpp
 SRCS = src/main.cpp src/Client.cpp src/Server.cpp src/Request.cpp \
 	src/Response.cpp src/utils.cpp src/utils2.cpp src/RequestParser.cpp \
-	src/PostMethod.cpp
+	src/PostMethod.cpp Parse_Config/Parser.cpp
 
 # Object files (derived from SRCS)
 OBJS = $(SRCS:.cpp=.o)
@@ -29,7 +29,7 @@ OBJS = $(SRCS:.cpp=.o)
 # Ensure all necessary headers are listed if they influence compilation of multiple .cpp files
 # For simplicity, we can make all .o files depend on all .hpp files,
 # or be more precise if needed.
-HEADER_FILES = includes/Client.hpp includes/Server.hpp includes/include.hpp
+HEADER_FILES = includes/Client.hpp includes/Server.hpp includes/include.hpp Parse_Config/Parser.hpp
 
 # Default target
 all: $(NAME)

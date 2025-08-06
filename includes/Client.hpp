@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 10:05:05 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/06/28 14:13:58 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/05 16:50:06 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,23 +45,27 @@ class Response {
 		std::string uri;
 		std::unordered_map<std::string, std::string> headers;
 		std::string body;
+		Request *request;
 
 		Response();
 		~Response();
-		void	buildStatusLine(Request &request);
-		void	buildHeaders(Request &request);
-		void	buildPostHeaders(Request &request);
-		void	buildGetBody(Request &request);
-		void	executePostBody(Request &request);
-		void	uploadRawFile(Request &request);
-		void	uploadUrlEncoded(Request &request);
-		void	uploadMultiForm(Request &request);
-		void	executeDeleteBody(Request &request);
-		void	build(Request &request);
-		void	createBody(Request &request);
+		void	buildStatusLine();
+		void	buildHeaders();
+		void	buildPostHeaders();
+		void	buildGetBody();
+		void	executePostBody();
+		void	uploadRawFile();
+		void	uploadMultiForm(std::string &content_type);
+		void	saveDataToFile(const std::string &data, std::string filename);
+		void	saveMultiFormDataToFile(std::string data);
+		void	uploadUrlEncoded();
+		void	saveFormDataToFile(const std::map<std::string, std::string> &form_data);
+		void	executeDeleteBody();
+		void	build();
+		void	createBody();
 		void	setStatus(int code, const std::string &message);
 		void	clear();
-		void	setGetPath(Request &request);
+		void	setGetPath();
 		std::string toString() const;
 };
 
