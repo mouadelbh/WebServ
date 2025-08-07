@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 10:08:13 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/07 18:23:01 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/07 18:47:48 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,24 +73,49 @@ void	Client::buildResponse() {
 	// std::cout << response_raw << std::endl;
 }
 
-bool	Client::sendResponse(std::vector<struct pollfd> &fds, size_t *index) {
-	this->buildResponse();
-	int bytes_sent = send(fd, response_raw.c_str(), response_raw.size(), 0);
-	if (bytes_sent < 0) {
-		std::cerr << "Error sending response_raw" << std::endl;
-		return false;
-	}
-	std::cout << "------response_raw sent to client " << fd << "------" << std::endl;
-	std::cout << response_raw << std::endl;
-	// if (response.headers["Connection"] == "close" || response.status_code != 200) {
-	// 	return false; // Signal to kickClient(...)
-	// }
-	last_activity = time(NULL);
-	state = READING; // Change state back to READING
-	fds[*index].events = POLLIN | POLLHUP | POLLERR | POLLNVAL; // Change back to POLLIN for reading next request
-	this->clear();
-	return true;
+bool Client::sendResponse(std::vector<struct pollfd> &fds, size_t *index) {
+    // Build response only once when first entering WRITING state
+    static bool response_built = false;
+    if (!response_built) {
+        this->buildResponse();
+        response.debugResponse(); // Debug the response format
+        response_built = true;
+    }
+
+    int bytes_sent = send(fd, response_raw.c_str(), response_raw.size(), 0);
+    if (bytes_sent < 0) {
+        std::cerr << "Error sending response: " << strerror(errno) << std::endl;
+        return false;
+    }
+
+    std::cout << "Sent " << bytes_sent << " bytes out of " << response_raw.size() << std::endl;
+
+    last_activity = time(NULL);
+    state = READING;
+    fds[*index].events = POLLIN | POLLHUP | POLLERR | POLLNVAL;
+    this->clear();
+    response_built = false; // Reset for next response
+    return true;
 }
+
+// bool	Client::sendResponse(std::vector<struct pollfd> &fds, size_t *index) {
+// 	this->buildResponse();
+// 	int bytes_sent = send(fd, response_raw.c_str(), response_raw.size(), 0);
+// 	if (bytes_sent < 0) {
+// 		std::cerr << "Error sending response_raw" << std::endl;
+// 		return false;
+// 	}
+// 	std::cout << "------response_raw sent to client " << fd << "------" << std::endl;
+// 	std::cout << response_raw << std::endl;
+// 	// if (response.headers["Connection"] == "close" || response.status_code != 200) {
+// 	// 	return false; // Signal to kickClient(...)
+// 	// }
+// 	last_activity = time(NULL);
+// 	state = READING; // Change state back to READING
+// 	fds[*index].events = POLLIN | POLLHUP | POLLERR | POLLNVAL; // Change back to POLLIN for reading next request
+// 	this->clear();
+// 	return true;
+// }
 
 void	Client::clear() {
 	response_raw.clear();

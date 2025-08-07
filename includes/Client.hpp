@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 10:05:05 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/07 16:56:32 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/07 18:52:19 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ class Response {
 		int status_code;
 		std::string status_message;
 		std::string uri;
-		std::unordered_map<std::string, std::string> headers;
+		std::map<std::string, std::string> headers;
 		std::string body;
 		Request *request;
 		ServerConfig *config;
@@ -68,6 +68,7 @@ class Response {
 		void	setStatus(int code, const std::string &message);
 		void	clear();
 		void	setGetPath();
+		void	debugResponse() const;
 		std::string toString() const;
 };
 

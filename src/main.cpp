@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/19 16:21:14 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/07 18:23:27 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/07 18:55:57 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,7 +68,6 @@ void	runServer(std::map<int, Server> &servers) {
 				else if (fds[i].revents & POLLOUT && clients[current_fd].state == WRITING) {
 					if (clients[current_fd].sendResponse(fds, &i)) {
 						std::cerr << "ghyrha mnhna " << current_fd << std::endl;
-						// kickClient(clients, fds, &i, &client_kicked);
 					} else {
 						std::cerr << "Error sending response to client " << current_fd << std::endl;
 						kickClient(clients, fds, &i, &client_kicked);

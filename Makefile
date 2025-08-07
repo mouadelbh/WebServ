@@ -6,13 +6,13 @@
 #    By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/24 10:08:38 by mel-bouh          #+#    #+#              #
-#    Updated: 2025/08/07 17:17:40 by mel-bouh         ###   ########.fr        #
+#    Updated: 2025/08/07 18:44:35 by mel-bouh         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 # Compiler and flags
 CC = c++
-FLAGS = -Wall -Wextra -Werror -g3 #-std=c++98 # Added -std=c++98 as it's common for such projects, adjust if needed
+FLAGS = -Wall -Wextra -Werror #-std=c++98 # Added -std=c++98 as it's common for such projects, adjust if needed
 
 # Executable name
 NAME = webserv
