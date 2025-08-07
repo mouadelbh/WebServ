@@ -6,13 +6,13 @@
 #    By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/24 10:08:38 by mel-bouh          #+#    #+#              #
-#    Updated: 2025/08/05 13:38:52 by mel-bouh         ###   ########.fr        #
+#    Updated: 2025/08/07 17:17:40 by mel-bouh         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 # Compiler and flags
 CC = c++
-FLAGS = -Wall -Wextra -Werror #-std=c++98 # Added -std=c++98 as it's common for such projects, adjust if needed
+FLAGS = -Wall -Wextra -Werror -g3 #-std=c++98 # Added -std=c++98 as it's common for such projects, adjust if needed
 
 # Executable name
 NAME = webserv
@@ -20,7 +20,7 @@ NAME = webserv
 # Source files: Added Server.cpp
 SRCS = src/main.cpp src/Client.cpp src/Server.cpp src/Request.cpp \
 	src/Response.cpp src/utils.cpp src/utils2.cpp src/RequestParser.cpp \
-	src/PostMethod.cpp Parse_Config/Parser.cpp
+	src/PostMethod.cpp Parse_Config/Parser.cpp src/utils3.cpp src/MultiForm.cpp
 
 # Object files (derived from SRCS)
 OBJS = $(SRCS:.cpp=.o)
@@ -37,7 +37,7 @@ all: $(NAME)
 # Rule to link the executable
 $(NAME): $(OBJS)
 	$(CC) $(FLAGS) -o $(NAME) $(OBJS)
-	./webserv
+# 	./webserv
 
 # Pattern rule to compile .cpp files into .o files
 # This rule says: to make a .o file, find the corresponding .cpp file

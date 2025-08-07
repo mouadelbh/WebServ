@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 05:28:14 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/07/10 15:20:04 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/07 18:16:26 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,8 +122,6 @@ bool Request::parse(const std::string& buffer) {
 		}
 		autoIndex = headers_end + 4;
 		parse_state = INFO;
-    	for (auto &h : headers)
-     	   std::cout << h.first << ": " << h.second << "\n";
 	}
 	if (parse_state == INFO) {
 		if (!getBodyInfo())

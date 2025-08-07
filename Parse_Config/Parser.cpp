@@ -98,7 +98,7 @@ void Parser::parseLocationBlock(size_t& pos, ServerConfig& server) {
     if (location.path.empty() || location.path == "{") {
         throw std::runtime_error("Parser Error: Missing location path.");
     }
-    
+
     expectToken("{", pos);
 
     std::string token;
@@ -107,7 +107,6 @@ void Parser::parseLocationBlock(size_t& pos, ServerConfig& server) {
             throw std::runtime_error("Parser Error: Unexpected end of file in location block.");
         }
         if (token == "root") {
-            location.root = getNextToken(pos);
             expectToken(";", pos);
         } else if (token == "methods") {
             while ((token = getNextToken(pos)) != ";") {
@@ -138,7 +137,7 @@ void Parser::parseLocationBlock(size_t& pos, ServerConfig& server) {
             throw std::runtime_error("Parser Error: Unknown directive '" + token + "' in location block.");
         }
     }
-    server.locations.push_back(location);
+    server.locations[location.path] = location;
 }
 
 void Parser::parseServerBlock(size_t& pos) {
@@ -146,7 +145,7 @@ void Parser::parseServerBlock(size_t& pos) {
     ServerConfig server;
 
     std::string token;
-    while ((token = getNextToken(pos)) != "}") 
+    while ((token = getNextToken(pos)) != "}")
     {
         if (token.empty()) {
             throw std::runtime_error("Parser Error: Unexpected end of file in server block.");

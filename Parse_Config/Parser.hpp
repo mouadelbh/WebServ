@@ -7,7 +7,6 @@
 
 struct LocationConfig {
     std::string path;
-    std::string root;
     bool autoindex;
     std::string index;
     std::vector<std::string> methods;
@@ -20,19 +19,19 @@ struct LocationConfig {
     LocationConfig();
 };
 
-struct ServerConfig {
-    std::string host;
-    int port;
-    std::string server_name;
-    std::string root;
-    bool autoindex;
-    std::string index;
-    std::vector<std::string> methods;
-    size_t client_size;
-    std::map<int, std::string> error_pages;
-    std::vector<LocationConfig> locations;
-
-    ServerConfig();
+class ServerConfig {
+    public:
+        std::string host;
+        int port;
+        std::string server_name;
+        std::string root;
+        bool autoindex;
+        std::string index;
+        std::vector<std::string> methods;
+        size_t client_size;
+        std::map<int, std::string> error_pages;
+        std::map<std::string , LocationConfig> locations;
+        ServerConfig();
 };
 
 class Parser {

@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 10:05:05 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/05 16:50:06 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/07 16:56:32 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@ enum ClientState {
 
 class Request;
 class Response;
+class ServerConfig;
 
 class Response {
 	public:
@@ -46,6 +47,7 @@ class Response {
 		std::unordered_map<std::string, std::string> headers;
 		std::string body;
 		Request *request;
+		ServerConfig *config;
 
 		Response();
 		~Response();
@@ -83,6 +85,7 @@ class Request {
 		size_t chunk_size;
 		BodyType	body_type;
 		ChunkParseState chunk_state;
+		ServerConfig *config;
 
 		Request();
 		~Request();
@@ -111,9 +114,10 @@ class Client {
 		Request request;
 		Response response;
 		time_t last_activity;
+		ServerConfig *config;
 
 		Client();
-		Client(int fd, sockaddr_in addr, socklen_t addr_len);
+		Client(int fd, sockaddr_in addr, socklen_t addr_len, ServerConfig *config);
 		~Client();
 		void	buildResponse();
 		bool	getRequest(std::vector<struct pollfd> &fds, size_t *index);

@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/19 16:18:09 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/06 13:36:42 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/07 17:06:27 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,11 +38,13 @@
 #include <ctime>
 #include <iomanip>
 #include <sys/epoll.h>
+#include <arpa/inet.h>
 #include "Client.hpp"
 #include "Server.hpp"
 
 extern bool run;
 extern bool autoIndex;
+extern std::vector<struct pollfd> fds;
 
 
 #define GREEN "\033[1;32m"
@@ -70,7 +72,7 @@ enum PathStatus {
 std::string	readFile(std::string const &path);
 void	terminate_server(int sig);
 void	init(char **av);
-void	kickClient(std::unordered_map<int, Client> &clients, std::vector<struct pollfd> &fds, size_t *index, bool *client);
+void	kickClient(std::map<int, Client> &clients, std::vector<struct pollfd> &fds, size_t *index, bool *client);
 bool	endsWith(const std::string& str, const std::string& suffix);
 bool	isValidHeaderValue(const std::string &value);
 bool	isValidHeaderKey(const std::string &value);
@@ -84,7 +86,13 @@ bool	fileReadable(const std::string &directoryPath);
 bool	fileExists(const std::string& path);
 bool	iequals(const std::string& a, const std::string& b);
 bool	checkIdle(Client& client);
+bool	isTextFile(const std::string& filename);
 std::string readError(std::string const &path, int code);
 std::string generateAutoindexPage(const std::string &directoryPath, const std::string &uri);
 std::string &getStatusCodeMap(int code);
+std::string generateDefaultFilename();
+std::string removeTrailingCRLF(const std::string& content);
+std::string processTextContent(const std::string& content);
+std::string extractFilename(const std::string& headers);
+std::string toLower(const std::string& str);
 PathStatus checkPath(const std::string& path_str);

@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 14:33:47 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/05 14:53:56 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/07 15:56:22 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -356,12 +356,10 @@ void	init(char **av) {
 	signal(SIGINT, terminate_server);
 }
 
-void	kickClient(std::unordered_map<int, Client> &clients, std::vector<struct pollfd> &fds, size_t *index, bool *client) {
+void	kickClient(std::map<int, Client> &clients, std::vector<struct pollfd> &fds, size_t *index, bool *client) {
     int client_fd = fds[*index].fd;
-	std::cout << "Kicking client with fd: " << client_fd << std::endl;
-    // shutdown(client_fd, SHUT_RDWR); // Shutdown the socket to prevent further communication
+	std::cout << RED << "Kicking client with fd: " << client_fd << RESET << std::endl;
 	close(client_fd);
-    epoll_ctl(fds[*index].fd, EPOLL_CTL_DEL, client_fd, NULL); // Remove from epoll
 	clients.erase(client_fd);
 	fds.erase(fds.begin() + *index);
 	*client = true;
