@@ -6,19 +6,42 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 16:07:51 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/06/28 13:47:18 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/08 14:32:48 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Client.hpp"
 
-Request::Request() : status(0), autoIndex(0), body_length(0), chunk_size(0), body_type(NONE) {
+Request::Request() : status(0), Index(0), body_length(0), chunk_size(0), body_type(NONE) {
 	parse_state = REQUEST_LINE;
+	locationConfig = NULL;
 	chunk_state = SIZE;
 }
 
 Request::~Request() {
 	clear();
+}
+
+bool	Request::bodySizeOk(size_t size) const {
+	if (locationConfig && locationConfig->client_size > 0) {
+		if (body.length() > locationConfig->client_size) {
+			return false;
+		}
+		return size < locationConfig->client_size;
+	}
+	else if (config && config->client_size > 0) {
+		if (body.length() > config->client_size) {
+			return false;
+		}
+		return size < config->client_size;
+	}
+	else {
+		if (body.length() > MAX_BODY_SIZE) {
+			return false;
+		}
+		return size < MAX_BODY_SIZE;
+	}
+	return false;
 }
 
 std::string Request::toString() const {
@@ -52,7 +75,7 @@ bool	Request::getBodyInfo() {
 		if (body_length < 0) {
 			status = 400;
 			return false;
-		} else if (body_length >= MAX_BODY_SIZE) {
+		} else if (!bodySizeOk(body_length)) {
 			status = 413;
 			return false;
 		}
@@ -97,7 +120,7 @@ bool	Request::getChunkSize(const std::string& buffer) {
 		chunk_size = 0;
 		return false;
 	}
-	if (chunk_size > MAX_CHUNK_SIZE) {
+	if (chunk_size > MAX_CHUNK_SIZE || !bodySizeOk(chunk_size)) {
 		status = 413; // Chunk size too large
 		chunk_size = 0;
 		return false;
@@ -141,6 +164,18 @@ bool	Request::parseChunkedBody(const std::string& buffer) {
 	return false;
 }
 
+bool	Request::autoIndexStatus() {
+	if (locationConfig && locationConfig->autoindex != -1) {
+		return locationConfig->autoindex;
+	}
+	else if (config && config->autoindex != -1) {
+		return config->autoindex;
+	}
+	else {
+		return autoIndex;
+	}
+}
+
 std::string	Request::getType() {
 	if (endsWith(path, ".html")) return "text/html";
 	if (endsWith(path, ".css")) return "text/css";
@@ -148,7 +183,7 @@ std::string	Request::getType() {
 	if (endsWith(path, ".jpg") || endsWith(path, ".jpeg")) return "image/jpeg";
 	if (endsWith(path, ".gif")) return "image/gif";
 	if (endsWith(path, ".js")) return "application/javascript";
-	if (autoIndex && isDirectory(path)) return "text/html";
+	if (autoIndexStatus()&& isDirectory(path)) return "text/html";
 	return "application/octet-stream";
 }
 
@@ -161,12 +196,13 @@ bool	Request::pathIsValid(int index) {
 
 void	Request::clear() {
 	status = 0;
-	autoIndex = 0;
+	Index = 0;
 	body_length = 0;
 	parse_state = REQUEST_LINE;
 	chunk_state = SIZE;
 	chunk_size = 0;
 	body_type = NONE;
+	dir.clear();
 	method.clear();
 	path.clear();
 	version.clear();

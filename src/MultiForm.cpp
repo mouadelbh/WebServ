@@ -1,23 +1,23 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   MutliForm.cpp                                      :+:      :+:    :+:   */
+/*   MultiForm.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/07 09:49:35 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/07 09:51:23 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/08 14:47:43 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Client.hpp"
 
 void	Response::saveDataToFile(const std::string &data, std::string filename) {
-	std::string upload_dir = "www/uploads"; // Or get from config
+	std::string upload_dir = request->path; // Or get from config
 	// Ensure the upload directory exists
 	if (access(upload_dir.c_str(), F_OK) == -1) {
 		if (mkdir(upload_dir.c_str(), 0755) == -1) {
-			setStatus(500, "Internal Server Error");
+			setStatus(500, getStatusCodeMap(500));
 			return;
 		}
 	}
@@ -33,18 +33,18 @@ void	Response::saveDataToFile(const std::string &data, std::string filename) {
 	// Create and write to the new file
 	std::ofstream outfile(filename.c_str(), std::ios::binary);
 	if (!outfile) {
-		setStatus(500, "Internal Server Error");
+		setStatus(500, getStatusCodeMap(500));
 		return;
 	}
 	outfile.write(data.c_str(), data.length());
 	outfile.close();
 
 	if (outfile.fail()) {
-		setStatus(500, "Internal Server Error");
+		setStatus(500, getStatusCodeMap(500));
 		return;
 	}
 	std::cout << GREEN << data << RESET << std::endl;
-	setStatus(201, "Created");
+	setStatus(201, getStatusCodeMap(201));
 	headers["Location"] = upload_dir;
 }
 
@@ -150,6 +150,6 @@ void Response::uploadMultiForm(std::string &content_type) {
 	}
 
 	if (status_code == 200) {
-		setStatus(201, "Created");
+		setStatus(201, getStatusCodeMap(201));
 	}
 }

@@ -7,14 +7,12 @@
 
 struct LocationConfig {
     std::string path;
-    bool autoindex;
+    int autoindex;
     std::string index;
     std::vector<std::string> methods;
     std::string redirect;
     std::string cgi_pass;
-    std::string upload_path;
     size_t client_size;
-    std::map<int, std::string> error_pages;
 
     LocationConfig();
 };
@@ -25,7 +23,7 @@ class ServerConfig {
         int port;
         std::string server_name;
         std::string root;
-        bool autoindex;
+        int autoindex;
         std::string index;
         std::vector<std::string> methods;
         size_t client_size;

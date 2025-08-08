@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/28 13:59:57 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/07 09:50:48 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/08 14:09:47 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ void	Response::uploadRawFile() {
 	// Ensure the upload directory exists
 	if (access(upload_dir.c_str(), F_OK) == -1) {
 		if (mkdir(upload_dir.c_str(), 0755) == -1) {
-			setStatus(500, "Internal Server Error");
+			setStatus(500, getStatusCodeMap(500));
 			return;
 		}
 	}
@@ -34,7 +34,7 @@ void	Response::uploadRawFile() {
 	// Create and write to the new file
 	std::ofstream outfile(filename.c_str(), std::ios::binary);
 	if (!outfile) {
-		setStatus(500, "Internal Server Error");
+		setStatus(500, getStatusCodeMap(500));
 		return;
 	}
 
@@ -42,11 +42,11 @@ void	Response::uploadRawFile() {
 	outfile.close();
 
 	if (outfile.fail()) {
-		setStatus(500, "Internal Server Error");
+		setStatus(500, getStatusCodeMap(500));
 		return;
 	}
 
-	setStatus(201, "Created");
+	setStatus(201, getStatusCodeMap(201));
 	headers["Location"] = upload_dir;
 }
 
@@ -120,7 +120,7 @@ void	Response::uploadUrlEncoded() {
 
 	// Empty form_data is OK - just save it
 	saveFormDataToFile(form_data);  // This handles empty maps gracefully
-	setStatus(201, "Created");
+	setStatus(201, getStatusCodeMap(201));
 }
 
 void	Response::executePostBody() {

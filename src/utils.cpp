@@ -6,13 +6,14 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 14:33:47 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/07 15:56:22 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/08 14:50:45 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/include.hpp"
 
 bool fileExists(const std::string& path) {
+    std::cout << "path : " << path << std::endl;
 	struct stat statbuf;
 	if (stat(path.c_str(), &statbuf) != 0)
 		return false;

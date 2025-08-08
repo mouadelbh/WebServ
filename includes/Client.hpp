@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 10:05:05 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/07 18:52:19 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/08 14:33:22 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ enum ClientState {
 class Request;
 class Response;
 class ServerConfig;
+struct LocationConfig;
 
 class Response {
 	public:
@@ -47,6 +48,7 @@ class Response {
 		std::map<std::string, std::string> headers;
 		std::string body;
 		Request *request;
+		LocationConfig *locationConfig;
 		ServerConfig *config;
 
 		Response();
@@ -69,6 +71,8 @@ class Response {
 		void	clear();
 		void	setGetPath();
 		void	debugResponse() const;
+		bool	autoIndexStatus();
+		std::string	getErrorPage(int code);
 		std::string toString() const;
 };
 
@@ -80,12 +84,14 @@ class Request {
 		std::string version;
 		std::unordered_map<std::string, std::string> headers;
 		std::string body;
+		std::string dir;
 		int status;
-		int autoIndex;
+		int Index;
 		size_t  body_length;
 		size_t chunk_size;
 		BodyType	body_type;
 		ChunkParseState chunk_state;
+		LocationConfig *locationConfig;
 		ServerConfig *config;
 
 		Request();
@@ -100,28 +106,32 @@ class Request {
 		bool	getBodyInfo();
 		bool	parseChunkedBody(const std::string &buffer);
 		bool	getChunkSize(const std::string &buffer);
+		bool	getDirectoryFromPath();
+		bool	MethodAllowed();
+		bool	bodySizeOk(size_t size) const;
+		bool	autoIndexStatus();
 		std::string	getType();
 		std::string toString() const;
-	};
+};
 
 class Client {
-		public:
-		int	fd;
-		std::string response_raw;
-		std::string request_raw;
-		sockaddr_in addr;
-		socklen_t addr_len;
-		ClientState state;
-		Request request;
-		Response response;
-		time_t last_activity;
-		ServerConfig *config;
+	public:
+	int	fd;
+	std::string response_raw;
+	std::string request_raw;
+	sockaddr_in addr;
+	socklen_t addr_len;
+	ClientState state;
+	Request request;
+	Response response;
+	time_t last_activity;
+	ServerConfig *config;
 
-		Client();
-		Client(int fd, sockaddr_in addr, socklen_t addr_len, ServerConfig *config);
-		~Client();
-		void	buildResponse();
-		bool	getRequest(std::vector<struct pollfd> &fds, size_t *index);
-		bool	sendResponse(std::vector<struct pollfd> &fds, size_t *index);
-		void	clear();
+	Client();
+	Client(int fd, sockaddr_in addr, socklen_t addr_len, ServerConfig *config);
+	~Client();
+	void	buildResponse();
+	bool	getRequest(std::vector<struct pollfd> &fds, size_t *index);
+	bool	sendResponse(std::vector<struct pollfd> &fds, size_t *index);
+	void	clear();
 };

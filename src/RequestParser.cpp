@@ -6,11 +6,43 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 05:28:14 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/07 18:16:26 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/08 13:56:09 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Client.hpp"
+
+bool	Request::getDirectoryFromPath()
+{
+	std::string::size_type pos = path.find_last_of('/');
+	if (pos != std::string::npos) {
+		dir = path.substr(0, pos);
+		if (config && config->locations.find(dir) != config->locations.end()) {
+			locationConfig = &config->locations[dir];
+		}
+		return true;
+	}
+	return false;
+}
+
+bool	Request::MethodAllowed() {
+	if (locationConfig && !locationConfig->methods.empty()) {
+		if (std::find(locationConfig->methods.begin(), locationConfig->methods.end(), method) != locationConfig->methods.end()) {
+			return true;
+		}
+	}
+	else if (config && !config->methods.empty()) {
+		if (std::find(config->methods.begin(), config->methods.end(), method) != config->methods.end()) {
+			return true;
+		}
+	}
+	else {
+		if (method == "GET" || method == "DELETE" || method == "POST") {
+			return true;
+		}
+	}
+	return false;
+}
 
 bool Request::parseRequestLine(const std::string& line) {
 	size_t pos, end;
@@ -28,7 +60,13 @@ bool Request::parseRequestLine(const std::string& line) {
 		status = 400;
 		return false;
 	}
-	if (method != "GET" && method != "POST" && method != "DELETE") {
+	getDirectoryFromPath();
+	while (locationConfig && locationConfig->redirect.empty()) {
+		path = locationConfig->redirect;
+		getDirectoryFromPath();
+		status = 301;
+	}
+	if (!MethodAllowed()){
 		status = 501;
 		return false;
 	}
@@ -100,27 +138,27 @@ bool Request::parseBody(const std::string& body_str) {
 
 bool Request::parse(const std::string& buffer) {
 	if (parse_state == REQUEST_LINE) {
-		size_t line_end = buffer.find("\r\n", autoIndex);
+		size_t line_end = buffer.find("\r\n", Index);
 		if (line_end == std::string::npos) {
 			return false; // Wait for more data
 		}
-		if (!parseRequestLine(buffer.substr(autoIndex, line_end - autoIndex))) {
+		if (!parseRequestLine(buffer.substr(Index, line_end - Index))) {
 			return false; // Error in request line
 		}
-		autoIndex = line_end + 2;
+		Index = line_end + 2;
 		parse_state = HEADERS;
 	}
 
 	if (parse_state == HEADERS) {
-		size_t headers_end = buffer.find("\r\n\r\n", autoIndex);
+		size_t headers_end = buffer.find("\r\n\r\n", Index);
 		if (headers_end == std::string::npos) {
 			return false; // Wait for more data
 		}
-		if (!parseHeaders(buffer.substr(autoIndex, headers_end - autoIndex))) {
+		if (!parseHeaders(buffer.substr(Index, headers_end - Index))) {
 			std::cout << status << std::endl;
 			return false; // Error in headers
 		}
-		autoIndex = headers_end + 4;
+		Index = headers_end + 4;
 		parse_state = INFO;
 	}
 	if (parse_state == INFO) {
@@ -130,10 +168,10 @@ bool Request::parse(const std::string& buffer) {
 	}
 	if (parse_state == BODY) {
 		if (body_type == CONTENT) {
-			if (buffer.length() - autoIndex < body_length) {
+			if (buffer.length() - Index < body_length) {
 				return false;
 			}
-			if (!parseBody(buffer.substr(autoIndex)))
+			if (!parseBody(buffer.substr(Index)))
 				return false;
 		}
 		if (body_type == CHUNKED) {

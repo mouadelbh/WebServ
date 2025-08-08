@@ -6,9 +6,9 @@
 #include <cstdlib>
 #include <limits>
 
-LocationConfig::LocationConfig() : autoindex(false), client_size(0) {}
+LocationConfig::LocationConfig() : autoindex(-1), client_size(0) {}
 
-ServerConfig::ServerConfig() : port(80), autoindex(false), client_size(std::numeric_limits<size_t>::max()) {}
+ServerConfig::ServerConfig() : port(80), autoindex(-1), client_size(std::numeric_limits<size_t>::max()) {}
 
 Parser::Parser(const std::string& filePath) : _filePath(filePath) {
     readFile();
@@ -131,9 +131,7 @@ void Parser::parseLocationBlock(size_t& pos, ServerConfig& server) {
             ss >> location.client_size;
             if (ss.fail()) throw std::runtime_error("Parser Error: Invalid client_size value.");
             expectToken(";", pos);
-        } else if (token == "error_page") {
-            parseErrorPage(location.error_pages, pos);
-        } else {
+        }else {
             throw std::runtime_error("Parser Error: Unknown directive '" + token + "' in location block.");
         }
     }
