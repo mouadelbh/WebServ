@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 16:07:51 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/09 16:29:16 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/09 20:16:26 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,7 +94,7 @@ bool	Request::getBodyInfo() {
 		std::map<std::string, std::string>::iterator it_content_type = headers.find("Content-Type");
 		if (it_content_type != headers.end()) {
 			if (!isValidContentType(it_content_type->second)) {
-				status = 415; // Unsupported Media Type
+				status = 415;
 				return false;
 			}
 		}
@@ -115,20 +115,20 @@ bool	Request::getChunkSize(const std::string& buffer) {
 	int temp_chunk_size = 0;
 	for (int i = 0; i < static_cast<int>(index); i++) {
 		if (!std::isxdigit(buffer[i])) {
-			status = 400; // Invalid chunk size
+			status = 400;
 			chunk_size = 0;
 			return false;
 		}
 		temp_chunk_size = temp_chunk_size * 16 + (buffer[i] >= '0' && buffer[i] <= '9' ? buffer[i] - '0' : std::tolower(buffer[i]) - 'a' + 10);
 	}
 	if (temp_chunk_size < 0) {
-		status = 400; // Negative chunk size
+		status = 400;
 		chunk_size = 0;
 		return false;
 	}
 	chunk_size = static_cast<size_t>(temp_chunk_size);
 	if (chunk_size > MAX_CHUNK_SIZE || !bodySizeOk(chunk_size)) {
-		status = 413; // Chunk size too large
+		status = 413;
 		chunk_size = 0;
 		return false;
 	}
@@ -141,26 +141,26 @@ bool	Request::parseChunkedBody(const std::string& buffer) {
 		if (chunk_state == SIZE) {
 			size_end = buffer.find("\r\n", autoIndex);
 			if (size_end == std::string::npos) {
-				return false; // Wait for more data
+				return false;
 			}
 			if (!getChunkSize(buffer.substr(autoIndex, size_end - autoIndex)))
 				return false; // Error in chunk size
 			autoIndex = size_end + 2;
 			if (chunk_size == 0)
-				chunk_state = CHUNK_DONE; // End of chunks
+				chunk_state = CHUNK_DONE;
 			else
 				chunk_state = DATA;
 		}
 		if (chunk_state == DATA) {
 			if (buffer.length() - autoIndex < chunk_size + 2) {
-				return false; // Wait for more data
+				return false;
 			}
 			if (buffer.substr(autoIndex + chunk_size, 2) != "\r\n") {
-				status = 400; // Invalid chunk data
+				status = 400;
 				return false;
 			}
 			body += buffer.substr(autoIndex, chunk_size);
-			autoIndex += chunk_size + 2; // Move past chunk data and CRLF
+			autoIndex += chunk_size + 2;
 			chunk_state = SIZE;
 			chunk_size = 0;
 		}

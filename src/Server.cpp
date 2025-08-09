@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 13:50:04 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/09 16:29:16 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/09 20:17:21 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,7 @@
 Server::Server() : socket_fd(-1), index(0) {}
 
 Server::~Server() {
-	// Don't modify the global fds vector in the destructor
-	// The fds vector should be managed by the main loop
+
 	if (socket_fd != -1) {
 		close(socket_fd);
 	}
@@ -28,20 +27,17 @@ void	Server::initServer() {
 	socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (socket_fd < 0)
 		std::cerr << "Error creating socket" << std::endl, exit(1);
-	std::cout << "Socket created successfully." << socket_fd << std::endl;
 	sockaddr_in addr;
 	fds.push_back((struct pollfd){socket_fd, POLLIN | POLLERR | POLLHUP | POLLNVAL, 0});
 	memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
-	std::cout << YELLOW << "Initializing server on port " << config->port << RESET << std::endl;
 	addr.sin_port = htons(config->port);
 	addr.sin_addr.s_addr = inet_addr(config->host.c_str());
 	setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 	if (bind(socket_fd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
 		std::cerr << "Error binding socket" << std::endl, exit(1);
-	if (listen(socket_fd, 100) < 0)
+	if (listen(socket_fd, 128) < 0)
 		std::cerr << "Error listening on socket" << std::endl, exit(1);
-	std::cout << "Server initialized on port " << config->port << std::endl;
 }
 
 void	Server::AcceptConnection(std::map<int, Client> &clients) {
@@ -49,7 +45,6 @@ void	Server::AcceptConnection(std::map<int, Client> &clients) {
 	sockaddr_in client_addr;
 	socklen_t client_len;
 
-	std::cout << "Waiting for a new connection..." << std::endl;
 	client_len = sizeof(client_addr);
 	memset(&client_addr, 0, client_len);
 	client_fd = accept(socket_fd, (struct sockaddr *)&client_addr, &client_len);
@@ -57,7 +52,6 @@ void	Server::AcceptConnection(std::map<int, Client> &clients) {
 		std::cerr << "Error accepting connection" << std::endl;
 		return ;
 	}
-	std::cout << "New connection accepted: " << inet_ntoa(client_addr.sin_addr) << ":" << ntohs(client_addr.sin_port) << std::endl;
 	fcntl(client_fd, F_SETFL, O_NONBLOCK);
 	clients[client_fd] = Client(client_fd, client_addr, client_len, config);
 	fds.push_back((struct pollfd){client_fd, POLLIN | POLLHUP | POLLERR | POLLNVAL, 0});

@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/07 09:46:50 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/09 16:29:16 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/09 20:20:36 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,6 @@ int stringToInt(const std::string &s) {
     return value;
 }
 
-// Helper function to convert string to lowercase (C++98 compatible)
 std::string toLower(const std::string& str) {
     std::string result = str;
     for (size_t i = 0; i < result.length(); ++i) {
@@ -30,7 +29,6 @@ std::string toLower(const std::string& str) {
     return result;
 }
 
-// Helper function to check if file extension indicates text file
 bool isTextFile(const std::string& filename) {
     size_t dot_pos = filename.find_last_of('.');
     if (dot_pos == std::string::npos) {
@@ -39,7 +37,6 @@ bool isTextFile(const std::string& filename) {
 
     std::string extension = toLower(filename.substr(dot_pos + 1));
 
-    // Check against common text file extensions
     return (extension == "txt" || extension == "csv" ||
             extension == "html" || extension == "css" ||
             extension == "js" || extension == "json" ||
@@ -47,14 +44,13 @@ bool isTextFile(const std::string& filename) {
             extension == "htm" || extension == "log");
 }
 
-// Helper function to extract filename from multipart headers
 std::string extractFilename(const std::string& headers) {
     size_t pos = headers.find("filename=\"");
     if (pos == std::string::npos) {
         return "";
     }
 
-    pos += 10; // Skip 'filename="'
+    pos += 10;
     size_t end_pos = headers.find('"', pos);
     if (end_pos == std::string::npos) {
         return "";
@@ -63,16 +59,15 @@ std::string extractFilename(const std::string& headers) {
     return headers.substr(pos, end_pos - pos);
 }
 
-// Helper function to process text content (convert \r\n to \n)
 std::string processTextContent(const std::string& content) {
     std::string processed_content;
-    processed_content.reserve(content.length()); // Optimize memory allocation
+    processed_content.reserve(content.length());
 
     for (size_t i = 0; i < content.length(); ++i) {
         if (i < content.length() - 1 &&
             content[i] == '\r' && content[i + 1] == '\n') {
             processed_content += '\n';
-            ++i; // Skip the \n
+            ++i;
         } else {
             processed_content += content[i];
         }
@@ -81,7 +76,6 @@ std::string processTextContent(const std::string& content) {
     return processed_content;
 }
 
-// Helper function to remove trailing CRLF
 std::string removeTrailingCRLF(const std::string& content) {
     if (content.length() >= 2 &&
         content.substr(content.length() - 2) == "\r\n") {
@@ -90,7 +84,6 @@ std::string removeTrailingCRLF(const std::string& content) {
     return content;
 }
 
-// Helper function to generate default filename
 std::string generateDefaultFilename() {
     std::ostringstream oss;
     oss << "upload_" << std::time(NULL) << ".txt";

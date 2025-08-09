@@ -6,31 +6,26 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/07 09:49:35 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/09 16:19:55 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/09 20:14:56 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Client.hpp"
 
 void	Response::saveDataToFile(const std::string &data, std::string filename) {
-	std::string upload_dir = request->path; // Or get from config
-	// Ensure the upload directory exists
+	std::string upload_dir = request->path;
 	if (access(upload_dir.c_str(), F_OK) == -1) {
 		if (mkdir(upload_dir.c_str(), 0755) == -1) {
 			setStatus(500, getStatusCodeMap(500));
 			return;
 		}
 	}
-	std::cout << RED << data << RESET << std::endl;
-	std::cout << "filename: " << filename << std::endl;
-	// Create a unique filename (e.g., using a timestamp)
 	if (filename.empty()) {
 		std::time_t result = std::time(NULL);
 		filename = upload_dir + "/upload_" + to_string_c98(result) + ".txt";
 	}
 	else
 		filename = upload_dir + "/" + filename;
-	// Create and write to the new file
 	std::ofstream outfile(filename.c_str(), std::ios::binary);
 	if (!outfile) {
 		setStatus(500, getStatusCodeMap(500));
@@ -43,7 +38,6 @@ void	Response::saveDataToFile(const std::string &data, std::string filename) {
 		setStatus(500, getStatusCodeMap(500));
 		return;
 	}
-	std::cout << GREEN << data << RESET << std::endl;
 	setStatus(201, getStatusCodeMap(201));
 	headers["Location"] = upload_dir;
 }
@@ -55,36 +49,26 @@ void Response::saveMultiFormDataToFile(std::string data) {
 		return;
 	}
 
-	// Extract components
 	std::string headers = data.substr(0, headers_pos);
 	std::string filename = extractFilename(headers);
 	std::string content = removeTrailingCRLF(data.substr(headers_pos + 4));
 
-	// Early return for empty content
 	if (content.empty() && filename.empty()) {
 		return;
 	}
 
-	// Use default filename if none provided
 	if (filename.empty()) {
 		filename = generateDefaultFilename();
 	}
 
-	// Process content based on file type
 	std::string final_content;
 	if (isTextFile(filename)) {
 		final_content = processTextContent(content);
-		std::cout << GREEN << "Processing as text file: " << filename << RESET << std::endl;
 	} else {
 		final_content = content;
-		std::cout << GREEN << "Processing as binary file: " << filename << RESET << std::endl;
 	}
 
-	// Save the file
 	saveDataToFile(final_content, filename);
-
-	std::cout << GREEN << "Saved file: " << filename
-				<< " (size: " << final_content.length() << " bytes)" << RESET << std::endl;
 }
 
 void Response::uploadMultiForm(std::string &content_type) {
@@ -107,10 +91,6 @@ void Response::uploadMultiForm(std::string &content_type) {
 	boundary = "--" + boundary_value;
 	last_boundary = boundary + "--";
 
-	std::cout << YELLOW << body << RESET << std::endl;
-	std::cout << "Boundary: [" << boundary << "]" << std::endl;
-	std::cout << "Last boundary: [" << last_boundary << "]" << std::endl;
-	// Find first boundary
 	pos = body.find(boundary);
 	if (pos == std::string::npos) {
 		request->status = 400;
@@ -118,10 +98,8 @@ void Response::uploadMultiForm(std::string &content_type) {
 	}
 
 	while (pos != std::string::npos) {
-		std::cout << "Current pos: " << pos << std::endl;
 
 		if (body.substr(pos, last_boundary.length()) == last_boundary) {
-			std::cout << "Found final boundary!" << std::endl;
 			break;
 		}
 
@@ -133,19 +111,10 @@ void Response::uploadMultiForm(std::string &content_type) {
 		size_t next_boundary = body.find(boundary, pos);
 
 		if (next_boundary == std::string::npos) {
-			std::cout << "No more boundaries found" << std::endl;
 			break;
 		}
-
-		std::cout << "Processing part from " << pos << " to " << next_boundary << std::endl;
-
 		std::string part_data = body.substr(pos, next_boundary - pos);
-
-		// Remove trailing CRLF
-
 		saveMultiFormDataToFile(part_data);
-
-		// Move past the current boundary so we don't reprocess it
 		pos = next_boundary;
 	}
 

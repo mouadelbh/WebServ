@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 10:08:13 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/09 18:00:22 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/09 20:14:42 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,21 +49,19 @@ bool	Client::getRequest(std::vector<struct pollfd> &fds, size_t *index) {
 			std::cerr << "Error receiving data\n";
 		if (request.parse_state != END && request.body_type == CONTENT &&
 				request.body.length() < request.body_length) {
-				request.status = 400; // Incomplete body
+				request.status = 400;
 				state = WRITING;
 				fds[*index].events = POLLOUT | POLLERR | POLLHUP | POLLNVAL;
 				return true;
 		}
-		return false;   // signal to kickClient(...)
+		return false;
 	}
 	last_activity = time(NULL);
 	request_raw.append(buffer, bytes_received);
 
 	if (request.parse(request_raw) || request.status != 0) {
 		state = WRITING;
-		fds[*index].events = POLLOUT | POLLERR | POLLHUP | POLLNVAL; // Change to POLLOUT for writing response
-		std::cout << "------request received from client " << fd << "------" << std::endl;
-		std::cout << request_raw << std::endl;
+		fds[*index].events = POLLOUT | POLLERR | POLLHUP | POLLNVAL;
 	}
 	return true;
 }
@@ -73,11 +71,9 @@ void	Client::buildResponse() {
 	response.locationConfig = request.locationConfig;
 	response.build();
 	response_raw = response.toString();
-	// std::cout << response_raw << std::endl;
 }
 
 bool Client::sendResponse(std::vector<struct pollfd> &fds, size_t *index) {
-	// Build response only once when first entering WRITING state
 	std::string buffer;
 	if (bytes_read == 0) {
 		this->buildResponse();
@@ -93,14 +89,12 @@ bool Client::sendResponse(std::vector<struct pollfd> &fds, size_t *index) {
 		std::cerr << "Error sending response: " << strerror(errno) << std::endl;
 		return false;
 	}
-	std::cout << "Sent " << bytes_sent << " bytes out of " << response_raw.size() << std::endl;
 
 	last_activity = time(NULL);
 	if (bytes_read >= response_raw.size() || bytes_read == 0) {
-		// Response fully sent, reset for next request
 		bytes_read = 0;
 		state = READING;
-		fds[*index].events = POLLIN | POLLHUP | POLLERR | POLLNVAL; // Change back to POLLIN for reading next request
+		fds[*index].events = POLLIN | POLLHUP | POLLERR | POLLNVAL; 
 		this->clear();
 	}
 	return true;

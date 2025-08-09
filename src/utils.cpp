@@ -6,13 +6,12 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 14:33:47 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/09 18:13:13 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/09 20:19:51 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/include.hpp"
 
-// C++98 compatible to_string function
 std::string to_string_c98(int value) {
 	std::stringstream ss;
 	ss << value;
@@ -35,97 +34,75 @@ struct EntryComparator {
     bool operator()(const std::pair<std::string, bool> &a,
                     const std::pair<std::string, bool> &b) const {
         if (a.second != b.second) {
-            return a.second > b.second; // Directories first
+            return a.second > b.second;
         }
-        return a.first < b.first; // Then alphabetical
+        return a.first < b.first;
     }
 };
 
 bool fileExists(const std::string& path) {
-    std::cout << "path : " << path << std::endl;
 	struct stat statbuf;
 	if (stat(path.c_str(), &statbuf) != 0)
 		return false;
 	if (!fileReadable(path))
-		return false; // Check if the file is readable
+		return false;
 	return S_ISREG(statbuf.st_mode);
 }
 
 std::string generateAutoindexPage(const std::string &directoryPath, const std::string &uri) {
     std::ostringstream html;
 
-    // Start HTML document and head
     html << "<!DOCTYPE html>\n";
     html << "<html lang=\"en\">\n<head>\n";
     html << "    <meta charset=\"UTF-8\">\n";
     html << "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n";
     html << "    <title>Index of " << uri << "</title>\n";
-    // Link to the external stylesheet
     html << "    <link rel=\"stylesheet\" type=\"text/css\" href=\"/autoindex_style.css\">\n";
     html << "</head>\n<body>\n";
 
-    // Main content container
     html << "    <div class=\"container\">\n";
     html << "        <h1>Index of " << uri << "</h1>\n";
     html << "        <hr>\n";
     html << "        <ul>\n";
 
-    // Attempt to open the directory
     DIR *dir = opendir(directoryPath.c_str());
     if (!dir) {
-        // If opendir fails (e.g., permissions), return a simple error message.
-        // The caller (Response::buildBody) should ideally set a 403 status.
-        // This string is a fallback if the caller doesn't handle it.
+
         html << "            <li>Could not open directory. Check permissions.</li>\n";
         html << "        </ul>\n";
-        html << "        <div class=\"footer\"><p>Webserv Autoindex</p></div>\n"; // Simple footer
+        html << "        <div class=\"footer\"><p>Webserv Autoindex</p></div>\n";
         html << "    </div>\n</body>\n</html>";
-        // It's better to return a distinct error indicator or let the caller handle the HTTP status.
-        // For now, returning the "403 Forbidden" string as per your original code if opendir fails.
-        // This will be caught by buildBody to set the actual 403 status.
-        // closedir(dir); // Should not be called if dir is NULL. This was a bug in original.
-                        // It's safer to check dir before closing.
-                        // This part of the code is problematic if !dir, as html stream is built for normal page
-                        // and then a raw H1 is returned. Let's assume for now that if opendir fails,
-                        // the server will handle sending the 403 status and the "<h1>403 Forbidden</h1>"
-                        // string might be used as the body. The CSS will attempt to style this raw H1.
-        return "<h1>403 Forbidden</h1>"; // Fallback from your original code
+              return "<h1>403 Forbidden</h1>";
     }
 
-    // Add "Parent Directory" link if not at the root
     if (uri != "/" && !uri.empty()) {
         std::string parentUri = uri;
-        // Remove trailing slash if present (except if it's just "/")
         if (parentUri.length() > 1 && parentUri[parentUri.length() - 1] == '/') {
-            parentUri = parentUri.substr(0, parentUri.length() - 1); // Remove trailing slash
+            parentUri = parentUri.substr(0, parentUri.length() - 1);
         }
-        // Find the last slash to go up one level
         size_t lastSlash = parentUri.find_last_of('/');
         if (lastSlash != std::string::npos) {
-            parentUri = parentUri.substr(0, lastSlash + 1); // Keep the slash for the parent
-            if (parentUri.empty() || parentUri[0] != '/') { // Ensure it's a valid path
-                    parentUri = "/"; // Default to root if manipulation fails
+            parentUri = parentUri.substr(0, lastSlash + 1);
+            if (parentUri.empty() || parentUri[0] != '/') {
+                    parentUri = "/";
             }
         } else {
-            parentUri = "/"; // If no other slash, parent is root
+            parentUri = "/";
         }
-        // Original logic: if (uri == "/") parentUri = ""; // Don't show parent for root itself
-        // This condition is covered by the initial `if (uri != "/")` check for adding the parent link.
-        // So if uri is "/", this block is skipped.
 
-        if (!parentUri.empty()) { //This check might be redundant if parentUri is always set to "/" or a path
+
+        if (!parentUri.empty()) {
             html << "            <li><a href=\"" << parentUri << "\" class=\"parent-dir\">.. (Parent Directory)</a></li>\n";
         }
     }
 
 
-    std::vector<std::pair<std::string, bool> > entries; // Pair: <name, is_directory>
+    std::vector<std::pair<std::string, bool> > entries;
     struct dirent *entry;
 
-    // Read all entries from the directory
     while ((entry = readdir(dir)) != NULL) {
         std::string name(entry->d_name);
-        if (name == "." || name == "..") { // Skip current and parent directory entries here
+        if (name == "." || name == "..") {
             continue;
         }
 
@@ -142,29 +119,25 @@ std::string generateAutoindexPage(const std::string &directoryPath, const std::s
         }
         entries.push_back(std::make_pair(name, is_dir));
     }
-    closedir(dir); // Close the directory stream
+    closedir(dir);
 
-    // Sort entries: directories first, then files, both alphabetically
     std::sort(entries.begin(), entries.end(), EntryComparator());
 
-    // Generate list items for each entry
     for (std::vector<std::pair<std::string, bool> >::const_iterator p = entries.begin();
      p != entries.end(); ++p) {
         const std::string& name = p->first;
         bool is_dir = p->second;
 
         html << "            <li><a href=\"";
-        // Ensure the base URI for links ends with a slash if it's a directory path
         std::string baseUri = uri;
         if (!baseUri.empty() && baseUri[baseUri.length() - 1] != '/') {
              baseUri += "/";
-        } else if (baseUri.empty()){ // if uri is empty (e.g. root of a specific autoindex config)
-            baseUri = "/"; // assume it's root if empty
+        } else if (baseUri.empty()){
+            baseUri = "/";
         }
-        // Handle case where uri is "/" - don't add extra slash if name starts with one (should not happen with readdir)
-        // or if uri is already just "/"
+
         if (uri == "/") {
-             baseUri = "/"; // Ensure it's just one slash before the name
+             baseUri = "/";
         }
 
 
@@ -199,8 +172,8 @@ bool fileReadable(const std::string &directoryPath) {
 bool isDirectory(const std::string &path) {
 	struct stat pathStat;
 	if (stat(path.c_str(), &pathStat) != 0)
-		return false; // file doesn't exist or not accessible
-	return S_ISDIR(pathStat.st_mode); // true if it's a directory
+		return false;
+	return S_ISDIR(pathStat.st_mode);
 }
 
 std::map<int, std::string> createStatusCodeMap() {
@@ -256,11 +229,9 @@ bool isValidRequestPath(const std::string &path) {
 	for (size_t i = 0; i < path.length(); ++i) {
 		char c = path[i];
 
-		// Reject control characters and spaces
 		if (c <= 0x1F || c == 0x7F || c == ' ')
 			return false;
 
-		// Optional: reject backslashes (Windows path)
 		if (c == '\\')
 			return false;
 	}
@@ -305,24 +276,22 @@ bool isValidContentType(const std::string &contentType) {
     if (contentType.empty()) {
         return false;
     }
-    // List of content types that are checked as prefixes
     static const std::string valid_types[] = {
         "application/x-www-form-urlencoded",
         "multipart/form-data",
         "application/json",
         "text/plain",
         "text/html",
-        "text/css",          // Added
-        "image/jpeg",        // Optional: for raw image uploads
-        "image/png",         // Optional: for raw image uploads
-        "image/gif",         // Optional: for raw image uploads
-        "application/javascript", // Optional: for raw JS uploads
+        "text/css",
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "application/javascript",
         "application/xml",
-        "" // Sentinel value
+        ""
     };
 
     for (int i = 0; !valid_types[i].empty(); ++i) {
-        // Use rfind to check if the contentType starts with a valid type
         if (contentType.rfind(valid_types[i], 0) == 0) {
             return true;
         }
@@ -336,7 +305,7 @@ bool isValidHeaderValue(const std::string &value) {
 		return false;
 	for (size_t i = 0; i < value.length(); ++i) {
 		char c = value[i];
-		if (iscntrl(c) && c != '\t') // allow horizontal tab only
+		if (iscntrl(c) && c != '\t')
 			return false;
 	}
 	return true;
@@ -374,7 +343,6 @@ bool	endsWith(const std::string& str, const std::string& suffix) {
 void	terminate_server(int sig) {
 	if (sig == SIGINT) {
 		run = false;
-		std::cout << "\nServer shutting down..." << std::endl;
 	}
 }
 
@@ -385,7 +353,6 @@ void	init(char **av) {
 
 void	kickClient(std::map<int, Client> &clients, std::vector<struct pollfd> &fds, size_t *index, bool *client) {
     int client_fd = fds[*index].fd;
-	std::cout << RED << "Kicking client with fd: " << client_fd << RESET << std::endl;
 	close(client_fd);
 	clients.erase(client_fd);
 	fds.erase(fds.begin() + *index);

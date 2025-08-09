@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 05:28:14 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/09 16:14:46 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/09 20:16:54 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,19 +97,15 @@ bool Request::parseRequestLine(const std::string& line) {
 
 bool Request::parseHeaders(const std::string& headers_str) {
 	size_t pos = 0, end;
-	// FIX: Change < to <= to process the last header
 	while (pos <= headers_str.size()) {
 		end = headers_str.find("\r\n", pos);
 		if (end == std::string::npos) {
-				// If no more \r\n, it might be the last header without a trailing CRLF
-				// This can happen depending on how the substring is passed.
-				// We'll let the line processing handle it.
 				end = headers_str.length();
 		}
 		std::string line = headers_str.substr(pos, end - pos);
 		if (line.empty()) {
 			pos = end + 2;
-			if (end >= headers_str.length()) break; // Exit if we are at the end
+			if (end >= headers_str.length()) break;
 			continue;
 		}
 		size_t colon = line.find(':');
@@ -158,10 +154,10 @@ bool Request::parse(const std::string& buffer) {
 	if (parse_state == REQUEST_LINE) {
 		size_t line_end = buffer.find("\r\n", Index);
 		if (line_end == std::string::npos) {
-			return false; // Wait for more data
+			return false;
 		}
 		if (!parseRequestLine(buffer.substr(Index, line_end - Index))) {
-			return false; // Error in request line
+			return false;
 		}
 		Index = line_end + 2;
 		parse_state = HEADERS;
@@ -170,18 +166,17 @@ bool Request::parse(const std::string& buffer) {
 	if (parse_state == HEADERS) {
 		size_t headers_end = buffer.find("\r\n\r\n", Index);
 		if (headers_end == std::string::npos) {
-			return false; // Wait for more data
+			return false;
 		}
 		if (!parseHeaders(buffer.substr(Index, headers_end - Index))) {
-			std::cout << status << std::endl;
-			return false; // Error in headers
+			return false;
 		}
 		Index = headers_end + 4;
 		parse_state = INFO;
 	}
 	if (parse_state == INFO) {
 		if (!getBodyInfo())
-			return false; // Error in body info
+			return false; 
 		parse_state = BODY;
 	}
 	if (parse_state == BODY) {

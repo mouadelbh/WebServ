@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/19 16:21:14 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/09 18:39:10 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/09 20:11:31 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,8 +109,6 @@ int main(int ac, char **av)
 			return 1;
 		}
 
-		std::cout << "Found " << servers.size() << " server configuration(s)" << std::endl;
-
 		for (size_t i = 0; i < servers.size(); ++i)
 		{
 			std::cout << "Server " << (i + 1) << ": " << servers[i].server_name
@@ -131,7 +129,6 @@ int main(int ac, char **av)
 		}
 		for (size_t i = 0; i < servers.size(); ++i) {
 			servers_map[starter[i].socket_fd] = starter[i];
-			std::cout << "socket_fd "<< servers_map[starter[i].socket_fd].socket_fd << std::endl;
 		}
 		runServer(servers_map);
 	}

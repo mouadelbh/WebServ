@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/09 13:08:26 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/09 18:32:38 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/09 20:17:17 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 
 void Response::executeCGI() {
 
-	std::cout << BLUE << "Executing CGI for path: " << request->path << RESET << std::endl;
 	std::string script_path = request->path;
 	size_t query_pos = script_path.find('?');
 	if (query_pos != std::string::npos) {
@@ -23,7 +22,6 @@ void Response::executeCGI() {
 
 	if (!isDirectory(script_path) && !fileExists(script_path)) {
 		if (errno == ENOENT || errno == ENOTDIR) {
-			std::cout << "File not found: " << script_path << std::endl;
 			setStatus(404, getStatusCodeMap(404));
 			return;
 		}
@@ -38,11 +36,9 @@ void Response::executeCGI() {
 			return;
 		}
 	}
-	// Determine the CGI interpreter based on file extension
 	std::string extension = script_path.substr(script_path.find_last_of('.'));
 	std::string interpreter = config->cgi_ext[extension];
 
-	// Create pipes for communication
 	int pipe_in[2], pipe_out[2];
 	if (pipe(pipe_in) == -1 || pipe(pipe_out) == -1) {
 		setStatus(500, "Internal Server Error");
@@ -91,7 +87,6 @@ void Response::executeCGI() {
 		std::string env_server_protocol = "SERVER_PROTOCOL=HTTP/1.1";
 		std::string env_gateway_interface = "GATEWAY_INTERFACE=CGI/1.1";
 
-		std::cout << "QUERY_STRING: " << env_query_string << std::endl;
 
 		char *envp[] = {
 			const_cast<char*>(env_request_method.c_str()),
@@ -127,7 +122,6 @@ void Response::executeCGI() {
 		close(pipe_out[0]);
 		int status1;
 		waitpid(pid, &status1, 0);
-		// std::cout << RED << "CGI_output : " << cgi_output << RESET << std::endl;
 		if (WEXITSTATUS(status1) != 0) {
 			setStatus(500, getStatusCodeMap(500));
 			return;
@@ -146,11 +140,9 @@ void Response::executeCGI() {
 		}
 
 		if (header_end != std::string::npos) {
-			// Parse headers
 			std::string cgi_headers = cgi_output.substr(0, header_end - 2);
 			body = cgi_output.substr(header_end);
 
-			// Parse individual headers
 			std::istringstream header_stream(cgi_headers);
 			std::string line;
 			while (std::getline(header_stream, line)) {
@@ -168,7 +160,6 @@ void Response::executeCGI() {
 				}
 			}
 		} else {
-			// No headers separator found, treat everything as body
 			body = cgi_output;
 			headers["Content-Type"] = "text/html";
 		}
