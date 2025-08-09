@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/19 16:21:14 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/07 18:55:57 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/09 18:36:13 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,16 +17,20 @@ bool	run = true;
 bool 	autoIndex = true;
 std::vector<struct pollfd> fds;
 
-void	close_sockets(std::map<int, Server> &servers, std::map<int, Client> &clients) {
-	std::map<int, Client>::iterator client_it;
-	for (client_it = clients.begin(); client_it != clients.end(); ++client_it) {
-		close(client_it->second.fd);
+void	close_clients(std::map<int, Client> &clients) {
+	std::map<int, Client>::iterator it;
+	for (it = clients.begin(); it != clients.end(); ++it) {
+		close(it->second.fd);
 	}
+	clients.clear();
+}
+
+void	close_sockets(std::map<int, Server> &servers, std::map<int, Client> &clients) {
+	close_clients(clients);
 	std::map<int, Server>::iterator server_it;
 	for (server_it = servers.begin(); server_it != servers.end(); ++server_it) {
 		close(server_it->second.socket_fd);
 	}
-	clients.clear();
 	servers.clear();
 	fds.clear();
 }
@@ -80,12 +84,15 @@ void	runServer(std::map<int, Server> &servers) {
 		}
 		catch (const std::bad_alloc &e) {
 			std::cerr << "Memory allocation failed: " << e.what() << std::endl;
+			close_clients(clients);
 		}
 		catch (const std::exception &e) {
 			std::cerr << "An error occurred: " << e.what() << std::endl;
+			close_clients(clients);
 		}
 		catch (...) {
 			std::cerr << "An unknown error occurred." << std::endl;
+			close_clients(clients);
 		}
 	}
 	close_sockets(servers, clients);
