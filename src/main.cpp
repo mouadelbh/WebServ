@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/19 16:21:14 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/09 18:36:13 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/09 18:39:10 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,13 +70,10 @@ void	runServer(std::map<int, Server> &servers) {
 				if (fds[i].revents & POLLIN && clients[current_fd].state != WRITING)
 					clients[current_fd].getRequest(fds, &i) ? (void)0 : kickClient(clients, fds, &i, &client_kicked);
 				else if (fds[i].revents & POLLOUT && clients[current_fd].state == WRITING) {
-					if (clients[current_fd].sendResponse(fds, &i)) {
-						std::cerr << "ghyrha mnhna " << current_fd << std::endl;
-					} else {
+					if (!clients[current_fd].sendResponse(fds, &i)) {
 						std::cerr << "Error sending response to client " << current_fd << std::endl;
 						kickClient(clients, fds, &i, &client_kicked);
 					}
-					// clients[current_fd].sendResponse(fds, &i) ? (void)0 : kickClient(clients, fds, &i, &client_kicked);
 				}
 				if (!client_kicked)
 					i++;

@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 16:28:05 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/09 18:30:16 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/09 19:48:54 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,6 +145,14 @@ std::string	Response::getErrorPage(int code) {
 	return error_page;
 }
 
+std::string removeString(const std::string &str, const std::string &to_remove) {
+	size_t pos = str.find(to_remove);
+	if (pos != std::string::npos) {
+		return str.substr(0, pos) + str.substr(pos + to_remove.length());
+	}
+	return str;
+}
+
 void	Response::createBody() {
 	if (status_code == 204) {
 		body.clear();
@@ -155,7 +163,7 @@ void	Response::createBody() {
 	else if (status_code == 200)
 		body = readFile(request->path);
 	else if (status_code == 301) {
-		headers["Location"] = request->path;
+		headers["Location"] = removeString(request->path, config->root);
 		body += "<h1>Moved Permanently</h1>";
 	}
 	else
@@ -234,6 +242,8 @@ bool	validStatusCode(int code) {
 void	Response::build() {
 	clear();
 	uri = request->path;
+	if (config->root[config->root.length() - 1] != '/' && request->path[0] != '/')
+		config->root = config->root + '/';
 	if (config->root[0] == '/')
 		config->root = config->root.substr(1);
 	request->path = config->root + request->path;
