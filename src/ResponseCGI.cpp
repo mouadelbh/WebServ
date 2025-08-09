@@ -92,6 +92,7 @@ void Response::executeCGI() {
 		std::string env_query_string = "QUERY_STRING=" + query_string;
 		std::string env_content_type = "CONTENT_TYPE=" + (request->headers.count("Content-Type") ? request->headers.at("Content-Type") : "");
 		std::string env_content_length = "CONTENT_LENGTH=" + std::to_string(request->body.length());
+		std::string env_cookies = "HTTP_COOKIE=" + (request->headers.count("Cookie") ? request->headers.at("Cookie") : "");
 		std::string env_script_name = "SCRIPT_NAME=" + uri;
 		std::string env_path_info = "PATH_INFO=";
 		std::string env_server_software = "SERVER_SOFTWARE=WebServ/1.0";
@@ -110,6 +111,7 @@ void Response::executeCGI() {
 			const_cast<char*>(env_server_software.c_str()),
 			const_cast<char*>(env_server_protocol.c_str()),
 			const_cast<char*>(env_gateway_interface.c_str()),
+			const_cast<char*>(env_cookies.c_str()),
 			NULL
 		};
 		execve(interpreter.c_str(), args, envp);
