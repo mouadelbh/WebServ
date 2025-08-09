@@ -11,7 +11,6 @@ struct LocationConfig {
     std::string index;
     std::vector<std::string> methods;
     std::string redirect;
-    std::string cgi_pass;
     size_t client_size;
 
     LocationConfig();
@@ -29,6 +28,7 @@ class ServerConfig {
         size_t client_size;
         std::map<int, std::string> error_pages;
         std::map<std::string , LocationConfig> locations;
+        std::map<std::string, std::string> cgi_ext;
         ServerConfig();
 };
 

@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 13:50:04 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/07 17:36:09 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/09 16:29:16 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,10 @@
 Server::Server() : socket_fd(-1), index(0) {}
 
 Server::~Server() {
-	for (struct pollfd fd : fds) {
-		close(fd.fd);
+	// Don't modify the global fds vector in the destructor
+	// The fds vector should be managed by the main loop
+	if (socket_fd != -1) {
+		close(socket_fd);
 	}
 }
 

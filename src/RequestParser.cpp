@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/20 05:28:14 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/08 13:56:09 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/09 16:14:46 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,15 +14,26 @@
 
 bool	Request::getDirectoryFromPath()
 {
-	std::string::size_type pos = path.find_last_of('/');
-	if (pos != std::string::npos) {
-		dir = path.substr(0, pos);
+	if (isDirectory(path)) {
+		dir = path;
+		if (dir[dir.length() - 1] == '/')
+			dir = dir.substr(0, dir.length() - 1);
 		if (config && config->locations.find(dir) != config->locations.end()) {
 			locationConfig = &config->locations[dir];
 		}
-		return true;
 	}
-	return false;
+	else {
+		size_t last_slash = path.find_last_of('/');
+		if (last_slash != std::string::npos) {
+			dir = path.substr(0, last_slash);
+			if (dir[dir.length() - 1] == '/')
+				dir = dir.substr(0, dir.length() - 1);
+			if (config && config->locations.find(dir) != config->locations.end()) {
+				locationConfig = &config->locations[dir];
+			}
+		}
+	}
+	return true;
 }
 
 bool	Request::MethodAllowed() {
@@ -44,6 +55,14 @@ bool	Request::MethodAllowed() {
 	return false;
 }
 
+bool Request::isRedirect() {
+	if (locationConfig && !locationConfig->redirect.empty()) {
+		path = locationConfig->redirect;
+		return true;
+	}
+	return false;
+}
+
 bool Request::parseRequestLine(const std::string& line) {
 	size_t pos, end;
 
@@ -61,13 +80,12 @@ bool Request::parseRequestLine(const std::string& line) {
 		return false;
 	}
 	getDirectoryFromPath();
-	while (locationConfig && locationConfig->redirect.empty()) {
-		path = locationConfig->redirect;
-		getDirectoryFromPath();
-		status = 301;
-	}
 	if (!MethodAllowed()){
 		status = 501;
+		return false;
+	}
+	if (isRedirect()) {
+		status = 301;
 		return false;
 	}
 	if (version != "HTTP/1.1" && version != "HTTP/1.0") {
@@ -112,13 +130,13 @@ bool Request::parseHeaders(const std::string& headers_str) {
 		pos = end + 2;
 		if (end >= headers_str.length()) break; // Exit after processing the last part
 	}
-	auto it_host = headers.find("Host");
+	std::map<std::string, std::string>::iterator it_host = headers.find("Host");
 	if (it_host == headers.end() || it_host->second.empty()) {
 		status = 400;
 		return false;
 	}
 	if (method == "POST") {
-		auto it_content_type = headers.find("Content-Type");
+		std::map<std::string, std::string>::iterator it_content_type = headers.find("Content-Type");
 		if (it_content_type == headers.end() || it_content_type->second.empty() \
 		|| !isValidHeaderValue(it_content_type->second)) {
 			status = 400;

@@ -123,9 +123,6 @@ void Parser::parseLocationBlock(size_t& pos, ServerConfig& server) {
         } else if (token == "return") {
             location.redirect = getNextToken(pos);
             expectToken(";", pos);
-        } else if (token == "cgi_pass") {
-            location.cgi_pass = getNextToken(pos);
-            expectToken(";", pos);
         } else if (token == "client_size") {
             std::stringstream ss(getNextToken(pos));
             ss >> location.client_size;
@@ -187,6 +184,18 @@ void Parser::parseServerBlock(size_t& pos) {
             parseErrorPage(server.error_pages, pos);
         } else if (token == "location") {
             parseLocationBlock(pos, server);
+        }
+        else if (token == "cgi_ext") {
+            std::string ext = getNextToken(pos);
+            if (ext.empty()) {
+                throw std::runtime_error("Parser Error: Missing CGI extension in cgi_ext directive.");
+            }
+            std::string path = getNextToken(pos);
+            if (path.empty()) {
+                throw std::runtime_error("Parser Error: Missing CGI path in cgi_ext directive.");
+            }
+            server.cgi_ext[ext] = path;
+            expectToken(";", pos);
         } else {
             throw std::runtime_error("Parser Error: Unknown directive '" + token + "' in server block.");
         }

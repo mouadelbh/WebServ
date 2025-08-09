@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 16:07:51 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/08 14:32:48 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/09 16:29:16 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,15 +47,15 @@ bool	Request::bodySizeOk(size_t size) const {
 std::string Request::toString() const {
 	std::string request_line = method + " " + path + " " + version + "\r\n";
 	std::string headers_str;
-	for (const auto &header : headers) {
-		headers_str += header.first + ": " + header.second + "\r\n";
+	for (std::map<std::string, std::string>::const_iterator header = headers.begin(); header != headers.end(); ++header) {
+		headers_str += header->first + ": " + header->second + "\r\n";
 	}
 	return request_line + headers_str + "\r\n" + body;
 }
 
 bool	Request::getBodyInfo() {
-	auto it_content = headers.find("Content-Length");
-	auto it_chunked = headers.find("Transfer-Encoding");
+	std::map<std::string, std::string>::iterator it_content = headers.find("Content-Length");
+	std::map<std::string, std::string>::iterator it_chunked = headers.find("Transfer-Encoding");
 
 	if (it_chunked != headers.end() && it_content != headers.end()) {
 		status = 400; return false;
@@ -71,11 +71,15 @@ bool	Request::getBodyInfo() {
 			status = 400;
 			return false;
 		}
-		body_length = std::stoi(it_content->second);
-		if (body_length < 0) {
+		std::stringstream ss(it_content->second);
+		int temp_length;
+		ss >> temp_length;
+		if (ss.fail() || temp_length < 0) {
 			status = 400;
 			return false;
-		} else if (!bodySizeOk(body_length)) {
+		}
+		body_length = static_cast<size_t>(temp_length);
+		if (!bodySizeOk(body_length)) {
 			status = 413;
 			return false;
 		}
@@ -87,7 +91,7 @@ bool	Request::getBodyInfo() {
 		return false;
 	}
 	if (body_type != NONE) {
-		auto it_content_type = headers.find("Content-Type");
+		std::map<std::string, std::string>::iterator it_content_type = headers.find("Content-Type");
 		if (it_content_type != headers.end()) {
 			if (!isValidContentType(it_content_type->second)) {
 				status = 415; // Unsupported Media Type
@@ -107,19 +111,22 @@ bool	Request::getChunkSize(const std::string& buffer) {
 	size_t stop = buffer.find(";", autoIndex);
 	if (stop != std::string::npos)
 		index = stop;
+
+	int temp_chunk_size = 0;
 	for (int i = 0; i < static_cast<int>(index); i++) {
 		if (!std::isxdigit(buffer[i])) {
 			status = 400; // Invalid chunk size
 			chunk_size = 0;
 			return false;
 		}
-		chunk_size = chunk_size * 16 + (buffer[i] >= '0' && buffer[i] <= '9' ? buffer[i] - '0' : std::tolower(buffer[i]) - 'a' + 10);
+		temp_chunk_size = temp_chunk_size * 16 + (buffer[i] >= '0' && buffer[i] <= '9' ? buffer[i] - '0' : std::tolower(buffer[i]) - 'a' + 10);
 	}
-	if (chunk_size < 0) {
+	if (temp_chunk_size < 0) {
 		status = 400; // Negative chunk size
 		chunk_size = 0;
 		return false;
 	}
+	chunk_size = static_cast<size_t>(temp_chunk_size);
 	if (chunk_size > MAX_CHUNK_SIZE || !bodySizeOk(chunk_size)) {
 		status = 413; // Chunk size too large
 		chunk_size = 0;

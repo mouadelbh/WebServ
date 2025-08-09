@@ -6,13 +6,13 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 10:08:13 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/08 13:59:35 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/09 18:00:22 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Client.hpp"
 
-Client::Client() : fd(-1), addr(), addr_len(0), state(READING) {
+Client::Client() : fd(-1), addr(), addr_len(0), state(READING), bytes_read(0) {
 	response_raw = "HTTP/1.1 200 OK\r\n"
 				"Content-Type: text/plain\r\n"
 				"Content-Length: 17\r\n"
@@ -22,7 +22,7 @@ Client::Client() : fd(-1), addr(), addr_len(0), state(READING) {
 }
 
 Client::Client(int fd, sockaddr_in addr, socklen_t addr_len, ServerConfig *config)
-	: fd(fd), addr(addr), addr_len(addr_len) {
+	: fd(fd), addr(addr), addr_len(addr_len), bytes_read(0) {
 	this->config = config;
 	request.config = config;
 	response.config = config;
@@ -78,30 +78,36 @@ void	Client::buildResponse() {
 
 bool Client::sendResponse(std::vector<struct pollfd> &fds, size_t *index) {
 	// Build response only once when first entering WRITING state
-	static bool response_built = false;
-	if (!response_built) {
+	std::string buffer;
+	if (bytes_read == 0) {
 		this->buildResponse();
-		response.debugResponse(); // Debug the response format
-		response_built = true;
+		buffer = response_raw;
+	}
+	if (response_raw.size() > MAX_CHUNK_SIZE) {
+		buffer = response_raw.substr(bytes_read, MAX_CHUNK_SIZE);
+		bytes_read += buffer.size();
 	}
 
-	int bytes_sent = send(fd, response_raw.c_str(), response_raw.size(), 0);
+	int bytes_sent = send(fd, buffer.c_str(), buffer.size(), 0);
 	if (bytes_sent < 0) {
 		std::cerr << "Error sending response: " << strerror(errno) << std::endl;
 		return false;
 	}
-
 	std::cout << "Sent " << bytes_sent << " bytes out of " << response_raw.size() << std::endl;
 
 	last_activity = time(NULL);
-	state = READING;
-	fds[*index].events = POLLIN | POLLHUP | POLLERR | POLLNVAL;
-	this->clear();
-	response_built = false; // Reset for next response
+	if (bytes_read >= response_raw.size() || bytes_read == 0) {
+		// Response fully sent, reset for next request
+		bytes_read = 0;
+		state = READING;
+		fds[*index].events = POLLIN | POLLHUP | POLLERR | POLLNVAL; // Change back to POLLIN for reading next request
+		this->clear();
+	}
 	return true;
 }
 
 void	Client::clear() {
+	bytes_read = 0;
 	response_raw.clear();
 	request_raw.clear();
 	request.clear();

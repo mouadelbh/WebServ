@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/19 16:18:09 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/09 13:10:14 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/09 17:53:22 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,6 @@
 #include <poll.h>
 #include <fcntl.h>
 #include <vector>
-#include <unordered_map>
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -96,4 +95,8 @@ std::string removeTrailingCRLF(const std::string& content);
 std::string processTextContent(const std::string& content);
 std::string extractFilename(const std::string& headers);
 std::string toLower(const std::string& str);
+std::string to_string_c98(int value);
+std::string to_string_c98(size_t value);
+std::string to_string_c98(time_t value);
+int stringToInt(const std::string &s);
 PathStatus checkPath(const std::string& path_str);

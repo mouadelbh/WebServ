@@ -6,11 +6,40 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 14:33:47 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/08 14:50:45 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/09 18:13:13 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/include.hpp"
+
+// C++98 compatible to_string function
+std::string to_string_c98(int value) {
+	std::stringstream ss;
+	ss << value;
+	return ss.str();
+}
+
+std::string to_string_c98(size_t value) {
+	std::stringstream ss;
+	ss << value;
+	return ss.str();
+}
+
+std::string to_string_c98(time_t value) {
+	std::stringstream ss;
+	ss << value;
+	return ss.str();
+}
+
+struct EntryComparator {
+    bool operator()(const std::pair<std::string, bool> &a,
+                    const std::pair<std::string, bool> &b) const {
+        if (a.second != b.second) {
+            return a.second > b.second; // Directories first
+        }
+        return a.first < b.first; // Then alphabetical
+    }
+};
 
 bool fileExists(const std::string& path) {
     std::cout << "path : " << path << std::endl;
@@ -67,8 +96,8 @@ std::string generateAutoindexPage(const std::string &directoryPath, const std::s
     if (uri != "/" && !uri.empty()) {
         std::string parentUri = uri;
         // Remove trailing slash if present (except if it's just "/")
-        if (parentUri.length() > 1 && parentUri.back() == '/') {
-            parentUri.pop_back();
+        if (parentUri.length() > 1 && parentUri[parentUri.length() - 1] == '/') {
+            parentUri = parentUri.substr(0, parentUri.length() - 1); // Remove trailing slash
         }
         // Find the last slash to go up one level
         size_t lastSlash = parentUri.find_last_of('/');
@@ -90,7 +119,7 @@ std::string generateAutoindexPage(const std::string &directoryPath, const std::s
     }
 
 
-    std::vector<std::pair<std::string, bool>> entries; // Pair: <name, is_directory>
+    std::vector<std::pair<std::string, bool> > entries; // Pair: <name, is_directory>
     struct dirent *entry;
 
     // Read all entries from the directory
@@ -101,7 +130,7 @@ std::string generateAutoindexPage(const std::string &directoryPath, const std::s
         }
 
         std::string fullPath = directoryPath;
-        if (!fullPath.empty() && fullPath.back() != '/') {
+        if (!fullPath.empty() && fullPath[fullPath.length() - 1] != '/') {
             fullPath += "/";
         }
         fullPath += name;
@@ -116,22 +145,18 @@ std::string generateAutoindexPage(const std::string &directoryPath, const std::s
     closedir(dir); // Close the directory stream
 
     // Sort entries: directories first, then files, both alphabetically
-    std::sort(entries.begin(), entries.end(), [](const auto& a, const auto& b) {
-        if (a.second != b.second) { // If one is a dir and other is a file
-            return a.second > b.second; // Directories (true) come before files (false)
-        }
-        return a.first < b.first; // Otherwise, sort alphabetically
-    });
+    std::sort(entries.begin(), entries.end(), EntryComparator());
 
     // Generate list items for each entry
-    for (const auto& p : entries) {
-        const std::string& name = p.first;
-        bool is_dir = p.second;
+    for (std::vector<std::pair<std::string, bool> >::const_iterator p = entries.begin();
+     p != entries.end(); ++p) {
+        const std::string& name = p->first;
+        bool is_dir = p->second;
 
         html << "            <li><a href=\"";
         // Ensure the base URI for links ends with a slash if it's a directory path
         std::string baseUri = uri;
-        if (!baseUri.empty() && baseUri.back() != '/') {
+        if (!baseUri.empty() && baseUri[baseUri.length() - 1] != '/') {
              baseUri += "/";
         } else if (baseUri.empty()){ // if uri is empty (e.g. root of a specific autoindex config)
             baseUri = "/"; // assume it's root if empty
@@ -196,6 +221,7 @@ std::map<int, std::string> createStatusCodeMap() {
 	statusMap[404] = "Not Found";
 	statusMap[405] = "Method Not Allowed";
 	statusMap[408] = "Request Timeout";
+    statusMap[409] = "Conflict";
 	statusMap[411] = "Length Required";
 	statusMap[413] = "Payload Too Large";
 	statusMap[414] = "URI Too Long";
@@ -319,7 +345,7 @@ bool isValidHeaderValue(const std::string &value) {
 std::string readError(std::string const &path, int code) {
 	std::ifstream file(path.c_str(), std::ios::in | std::ios::binary);
 	if (!file.is_open())
-		return "<h1>" + std::to_string(code) + " " + getStatusCodeMap(code) + "</h1>";
+		return "<h1>" + to_string_c98(code) + " " + getStatusCodeMap(code) + "</h1>";
 
 	std::ostringstream ss;
 	ss << file.rdbuf();

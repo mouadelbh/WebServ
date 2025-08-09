@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 16:28:05 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/09 13:10:03 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/09 18:30:16 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ void Response::debugResponse() const {
                 cl_value = cl_value.substr(first);
             }
 
-            int declared_length = std::stoi(cl_value);
+            int declared_length = std::atoi(cl_value.c_str());
             std::cout << "Declared Content-Length: " << declared_length << std::endl;
             std::cout << "Actual body length: " << body_only.length() << std::endl;
 
@@ -91,10 +91,7 @@ std::string Response::toString() const
 }
 
 bool	Response::autoIndexStatus() {
-	if (locationConfig && locationConfig->autoindex != -1) {
-		return locationConfig->autoindex;
-	}
-	else if (config && config->autoindex != -1) {
+	if (config && config->autoindex != -1) {
 		return config->autoindex;
 	}
 	else {
@@ -108,14 +105,22 @@ void	Response::buildStatusLine() {
 		setStatus(request->status, getStatusCodeMap(request->status));
 }
 
+std::string	Response::getIndex() {
+	if (locationConfig && !locationConfig->index.empty())
+		return locationConfig->index;
+	else if (config && !config->index.empty())
+		return config->index;
+	return "";
+}
+
 void	Response::setGetPath() {
 	std::string &path = request->path;
 
 	if (isDirectory(request->path) && !endsWith(request->path, "/"))
 		path += "/";
-	if (isDirectory(request->path) && fileReadable(request->path + (config->index.empty() ? "index.html" : config->index)))
-		path += (config->index.empty() ? "index.html" : config->index);
-	if (isDirectory(request->path) && !fileReadable(request->path + (config->index.empty() ? "index.html" : config->index)) && !autoIndexStatus()) {
+	if (isDirectory(request->path) && fileReadable(request->path + getIndex()))
+		path += getIndex();
+	else if (isDirectory(request->path) && !fileReadable(request->path + getIndex()) && !autoIndexStatus()) {
 		setStatus(403, getStatusCodeMap(403));
 		return;
 	}
@@ -135,7 +140,7 @@ std::string	Response::getErrorPage(int code) {
 	std::string error_page = "error_pages/";
 	if (config->error_pages.find(code) != config->error_pages.end())
 		return config->error_pages[code];
-	error_page += std::to_string(code);
+	error_page += to_string_c98(code);
 	error_page += ".html";
 	return error_page;
 }
@@ -149,15 +154,23 @@ void	Response::createBody() {
 		body = readError("www/upload.html", 201);
 	else if (status_code == 200)
 		body = readFile(request->path);
+	else if (status_code == 301) {
+		headers["Location"] = request->path;
+		body += "<h1>Moved Permanently</h1>";
+	}
 	else
 		body = readError(getErrorPage(status_code), status_code);
 }
 
 void	Response::buildGetBody() {
-	if (status_code == 200 || status_code == 301)
+	if (status_code == 200)
 		this->setGetPath();
-	if ((status_code == 200 || status_code == 301) && autoIndexStatus() && isDirectory(request->path)) {
+	if ((status_code == 200) && autoIndexStatus() && isDirectory(request->path)) {
 		body = generateAutoindexPage(request->path, uri);
+	}
+	else if (!autoIndexStatus()) {
+		setStatus(403, getStatusCodeMap(403));
+		this->createBody();
 	}
 	else
 		this->createBody();
@@ -166,7 +179,7 @@ void	Response::buildGetBody() {
 void Response::buildHeaders() {
     // FIRST: Make sure body is finalized BEFORE calculating Content-Length
     if (status_code != 204) {
-        if ((status_code == 200 || status_code == 301) && !CGI_active)
+        if (status_code == 200 && !CGI_active)
             headers["Content-Type"] = request->getType();
         else
             headers["Content-Type"] = "text/html";
@@ -176,25 +189,12 @@ void Response::buildHeaders() {
     if (status_code != 204) {
         // CRITICAL: Use body.size(), not body.length()
         // In case of binary data, these might differ
-        headers["Content-Length"] = std::to_string(body.size());
+        headers["Content-Length"] = to_string_c98(body.size());
     }
 
     headers["Connection"] = "close";
     headers["Server"] = config->server_name.empty() ? "Webserv" : config->server_name;
 }
-
-// void	Response::buildHeaders() {
-// 	if (status_code != 204) {
-// 		headers["Content-Length"] = std::to_string(body.size());
-// 		if (status_code == 200)
-// 			headers["Content-Type"] = request->getType();
-// 		else
-// 			headers["Content-Type"] = "text/html";
-// 	}
-
-// 	headers["Connection"] = "close";
-// 	headers["Server"] = "Webserv";
-// }
 
 void	Response::executeDeleteBody() {
 	struct stat fileStat;
@@ -273,13 +273,15 @@ bool Response::isCGIRequest(const std::string &path) {
 		file_path = file_path.substr(0, query_pos);
 	}
 
-	// Check if the file has a CGI extension
-	if (file_path.find(".php") != std::string::npos ||
-		file_path.find(".py") != std::string::npos ||
-		file_path.find(".pl") != std::string::npos) {
-			return true;
-		}
-	return false;
+	// Check if the file has a CGI extension with c++ 98
+	if (config->cgi_ext.empty())
+		return false;
+	if (file_path.find_last_of('.') == std::string::npos)
+		return false;
+	std::string extension = file_path.substr(file_path.find_last_of('.'));
+	if (config->cgi_ext.find(extension) == config->cgi_ext.end())
+		return false;
+	return true;
 }
 
 void	Response::clear() {

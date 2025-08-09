@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/09 13:08:26 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/09 13:09:41 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/09 18:32:38 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,9 +21,9 @@ void Response::executeCGI() {
 		script_path = script_path.substr(0, query_pos);
 	}
 
-	if (!isDirectory(request->path) && !fileExists(request->path)) {
+	if (!isDirectory(script_path) && !fileExists(script_path)) {
 		if (errno == ENOENT || errno == ENOTDIR) {
-			std::cout << "File not found: " << request->path << std::endl;
+			std::cout << "File not found: " << script_path << std::endl;
 			setStatus(404, getStatusCodeMap(404));
 			return;
 		}
@@ -39,16 +39,8 @@ void Response::executeCGI() {
 		}
 	}
 	// Determine the CGI interpreter based on file extension
-	std::string interpreter;
-	if (script_path.find(".php") != std::string::npos) {
-		interpreter = "/usr/bin/php";
-	} else if (script_path.find(".py") != std::string::npos) {
-		std::cout << "Using Python interpreter for CGI script." << std::endl;
-		interpreter = "/usr/bin/python3";
-	} else {
-		setStatus(500, "Internal Server Error");
-		return;
-	}
+	std::string extension = script_path.substr(script_path.find_last_of('.'));
+	std::string interpreter = config->cgi_ext[extension];
 
 	// Create pipes for communication
 	int pipe_in[2], pipe_out[2];
@@ -91,7 +83,7 @@ void Response::executeCGI() {
 		std::string env_request_method = "REQUEST_METHOD=" + request->method;
 		std::string env_query_string = "QUERY_STRING=" + query_string;
 		std::string env_content_type = "CONTENT_TYPE=" + (request->headers.count("Content-Type") ? request->headers.at("Content-Type") : "");
-		std::string env_content_length = "CONTENT_LENGTH=" + std::to_string(request->body.length());
+		std::string env_content_length = "CONTENT_LENGTH=" + to_string_c98(request->body.length());
 		std::string env_cookies = "HTTP_COOKIE=" + (request->headers.count("Cookie") ? request->headers.at("Cookie") : "");
 		std::string env_script_name = "SCRIPT_NAME=" + uri;
 		std::string env_path_info = "PATH_INFO=";
@@ -142,7 +134,7 @@ void Response::executeCGI() {
 		}
 		CGI_active = true;
 		headers["Content-Type"] = "text/html";
-		headers["Content-Length"] = std::to_string(cgi_output.length());
+		headers["Content-Length"] = to_string_c98(cgi_output.length());
 		size_t header_end = cgi_output.find("\r\n\r\n");
 		if (header_end == std::string::npos) {
 			header_end = cgi_output.find("\n\n");
@@ -162,8 +154,8 @@ void Response::executeCGI() {
 			std::istringstream header_stream(cgi_headers);
 			std::string line;
 			while (std::getline(header_stream, line)) {
-				if (!line.empty() && line.back() == '\r') {
-					line.pop_back();
+				if (!line.empty() && line[line.length() - 1] == '\r') {
+					line = line.substr(0, line.length() - 1);
 				}
 				size_t colon_pos = line.find(':');
 				if (colon_pos != std::string::npos) {

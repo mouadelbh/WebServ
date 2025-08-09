@@ -6,15 +6,13 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 10:05:05 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/09 11:11:23 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/09 18:01:06 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "include.hpp"
-
-#define ClientsMap std::unordered_map<int, Client>
 
 enum BodyType { NONE, CONTENT, CHUNKED };
 enum ChunkParseState { SIZE, DATA, DATA_CRLF, TRAILERS, CHUNK_DONE };
@@ -75,6 +73,7 @@ class Response {
 		void	setGetPath();
 		void	debugResponse() const;
 		bool	autoIndexStatus();
+		std::string	getIndex();
 		std::string	getErrorPage(int code);
 		std::string toString() const;
 };
@@ -85,7 +84,7 @@ class Request {
 		std::string method;
 		std::string path;
 		std::string version;
-		std::unordered_map<std::string, std::string> headers;
+		std::map<std::string, std::string> headers;
 		std::string body;
 		std::string dir;
 		int status;
@@ -113,6 +112,7 @@ class Request {
 		bool	MethodAllowed();
 		bool	bodySizeOk(size_t size) const;
 		bool	autoIndexStatus();
+		bool	isRedirect();
 		std::string	getType();
 		std::string toString() const;
 };
@@ -129,6 +129,7 @@ class Client {
 	Response response;
 	time_t last_activity;
 	ServerConfig *config;
+	size_t	bytes_read;
 
 	Client();
 	Client(int fd, sockaddr_in addr, socklen_t addr_len, ServerConfig *config);

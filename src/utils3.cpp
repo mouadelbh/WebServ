@@ -6,11 +6,20 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/07 09:46:50 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/07 09:47:18 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/09 16:29:16 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/include.hpp"
+
+int stringToInt(const std::string &s) {
+    std::istringstream iss(s);
+    int value;
+    if (!(iss >> value)) {
+        throw std::runtime_error("Invalid integer: " + s);
+    }
+    return value;
+}
 
 // Helper function to convert string to lowercase (C++98 compatible)
 std::string toLower(const std::string& str) {

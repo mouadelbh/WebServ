@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/07 09:49:35 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/08 14:47:43 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/09 16:19:55 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,8 +25,8 @@ void	Response::saveDataToFile(const std::string &data, std::string filename) {
 	std::cout << "filename: " << filename << std::endl;
 	// Create a unique filename (e.g., using a timestamp)
 	if (filename.empty()) {
-		std::time_t result = std::time(nullptr);
-		filename = upload_dir + "/upload_" + std::to_string(result) + ".txt";
+		std::time_t result = std::time(NULL);
+		filename = upload_dir + "/upload_" + to_string_c98(result) + ".txt";
 	}
 	else
 		filename = upload_dir + "/" + filename;
