@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/24 10:05:05 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/08 14:33:22 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/09 11:11:23 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ struct LocationConfig;
 
 class Response {
 	public:
+		bool CGI_active;
 		std::string version;
 		int status_code;
 		std::string status_message;
@@ -53,6 +54,8 @@ class Response {
 
 		Response();
 		~Response();
+		bool	isCGIRequest(const std::string &path);
+		void	executeCGI();
 		void	buildStatusLine();
 		void	buildHeaders();
 		void	buildPostHeaders();
