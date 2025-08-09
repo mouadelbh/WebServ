@@ -6,7 +6,7 @@
 /*   By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/19 16:18:09 by mel-bouh          #+#    #+#             */
-/*   Updated: 2025/08/07 17:06:27 by mel-bouh         ###   ########.fr       */
+/*   Updated: 2025/08/09 13:10:14 by mel-bouh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@
 #include <iomanip>
 #include <sys/epoll.h>
 #include <arpa/inet.h>
+#include <sys/wait.h>
 #include "Client.hpp"
 #include "Server.hpp"
 

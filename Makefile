@@ -6,7 +6,7 @@
 #    By: mel-bouh <mel-bouh@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/24 10:08:38 by mel-bouh          #+#    #+#              #
-#    Updated: 2025/08/07 18:44:35 by mel-bouh         ###   ########.fr        #
+#    Updated: 2025/08/09 13:10:48 by mel-bouh         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,7 +20,8 @@ NAME = webserv
 # Source files: Added Server.cpp
 SRCS = src/main.cpp src/Client.cpp src/Server.cpp src/Request.cpp \
 	src/Response.cpp src/utils.cpp src/utils2.cpp src/RequestParser.cpp \
-	src/PostMethod.cpp Parse_Config/Parser.cpp src/utils3.cpp src/MultiForm.cpp
+	src/PostMethod.cpp Parse_Config/Parser.cpp src/utils3.cpp src/MultiForm.cpp \
+	src/ResponseCGI.cpp
 
 # Object files (derived from SRCS)
 OBJS = $(SRCS:.cpp=.o)
